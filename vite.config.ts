@@ -1,4 +1,9 @@
-import { defineConfig, type HtmlTagDescriptor, type Plugin } from "vite"
+import {
+  defineConfig,
+  loadEnv,
+  type HtmlTagDescriptor,
+  type Plugin,
+} from "vite"
 
 import react from "@vitejs/plugin-react"
 
@@ -7,11 +12,19 @@ import tailwindcss from "@tailwindcss/vite"
 import path from "node:path"
 
 import siteConfiguration from "./.figma/make/site.json"
+import { assertPublicSupabaseKey } from "./src/integrations/supabase/apiKeyValidation"
 
 // Vite config — https://vitejs.dev/config/
 
 export default defineConfig(({ mode }) => {
   // .figma/make/deploy-preview passes `--mode development` for cached-preview builds.
+
+  const loadedEnvironment = loadEnv(mode, process.cwd(), "")
+  const browserSupabaseKey =
+    process.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
+    loadedEnvironment.VITE_SUPABASE_PUBLISHABLE_KEY
+
+  if (browserSupabaseKey) assertPublicSupabaseKey(browserSupabaseKey)
 
   const emitSourcemaps = mode === "development"
 

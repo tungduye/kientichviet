@@ -4,16 +4,19 @@ import { createClient } from "@supabase/supabase-js"
 
 import type { Database } from "./types"
 
+import { assertPublicSupabaseKey } from "./apiKeyValidation"
 import { brokeredPreviewStorage } from "./previewAuthStorage"
 
 const SUPABASE_URL =
   import.meta.env.VITE_SUPABASE_URL || "https://placeholder-project.supabase.co"
 
 const SUPABASE_PUBLISHABLE_KEY =
-  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "placeholder-anon-key"
+  assertPublicSupabaseKey(
+    import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "placeholder-anon-key",
+  )
 
 function isNewSupabaseApiKey(value: string): boolean {
-  return value.startsWith("sb_publishable_") || value.startsWith("sb_secret_")
+  return value.startsWith("sb_publishable_")
 }
 
 function createSupabaseFetch(supabaseKey: string): typeof fetch {

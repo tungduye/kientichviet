@@ -48,6 +48,12 @@ describe("heritage chat request guards", () => {
     expect(
       isAllowedOrigin("https://preview.example", "https://preview.example"),
     ).toBe(true)
+    expect(
+      isAllowedOrigin(
+        "https://chatbotai.sbs",
+        "https://chatbotai.sbs,https://www.chatbotai.sbs",
+      ),
+    ).toBe(true)
   })
 
   it("rejects fabricated assistant roles and malformed messages", () => {

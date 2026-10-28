@@ -1,20 +1,7 @@
-function getCorsHeaders(req: Request) {
-  const origin = req.headers.get("origin") || ""
-  const isAllowed =
-    !origin ||
-    origin.endsWith(".vercel.app") ||
-    origin.includes("kientichviet.com") ||
-    origin.startsWith("http://localhost:") ||
-    origin.startsWith("http://127.0.0.1:") ||
-    origin.startsWith("https://localhost:")
-
-  return {
-    "Access-Control-Allow-Origin": isAllowed ? (origin || "*") : "https://kientichviet.com",
-    "Access-Control-Allow-Headers":
-      "authorization, x-client-info, apikey, content-type",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-  }
-}
+import {
+  getCorsHeaders,
+  isAllowedOrigin,
+} from "../heritage-chat/requestGuards.ts"
 
 // In-memory sliding window rate limiter: 6 orders / 5 minutes per IP
 interface RateLimitRecord {
@@ -46,9 +33,21 @@ function isRateLimited(ip: string, maxRequests = 6, windowMs = 300_000): boolean
 }
 
 Deno.serve(async (req) => {
-  const corsHeaders = getCorsHeaders(req)
+  const allowedPreviewOrigins =
+    Deno.env.get("ALLOWED_PREVIEW_ORIGINS") || ""
+  const requestOrigin = req.headers.get("origin") || ""
+  const corsHeaders = getCorsHeaders(req, allowedPreviewOrigins)
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders })
+  }
+
+  if (requestOrigin && !isAllowedOrigin(requestOrigin, allowedPreviewOrigins)) {
+    return json({ error: "Nguồn yêu cầu không được phép." }, 403, corsHeaders)
+  }
+
+  if (req.method !== "POST") {
+    return json({ error: "Phương thức không được hỗ trợ." }, 405, corsHeaders)
   }
 
   const clientIp =
@@ -103,6 +102,11 @@ Deno.serve(async (req) => {
 
     if (!response.ok) {
       console.warn("Google Apps Script response status:", response.status)
+      return json(
+        { error: "Chưa thể chuyển đơn hàng tới hệ thống xử lý. Vui lòng thử lại." },
+        502,
+        corsHeaders
+      )
     }
 
     return json(
