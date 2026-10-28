@@ -10,6 +10,7 @@ import {
   saveChatHistory,
   stripMarkdownForSpeech,
 } from "../features/chat/chatSession"
+import { waitForVietnameseVoice } from "../features/chat/voiceSelection"
 import { supabase } from "../integrations/supabase/client"
 import { useSiteContent } from "../context/SiteContentContext"
 
@@ -69,6 +70,7 @@ export default function Chatbox() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null)
   const conversationGenerationRef = useRef(0)
+  const speechGenerationRef = useRef(0)
   const supportsVoiceInput = Boolean(getSpeechRecognitionConstructor())
   const supportsVoiceOutput =
     typeof window !== "undefined" && "speechSynthesis" in window
@@ -84,6 +86,7 @@ export default function Chatbox() {
 
   useEffect(() => {
     return () => {
+      speechGenerationRef.current += 1
       recognitionRef.current?.abort()
       window.speechSynthesis?.cancel()
     }
@@ -91,26 +94,39 @@ export default function Chatbox() {
 
   const stopSpeaking = useCallback(() => {
     if (!supportsVoiceOutput) return
+    speechGenerationRef.current += 1
     window.speechSynthesis.cancel()
     setIsSpeaking(false)
   }, [supportsVoiceOutput])
 
   const speakReply = useCallback(
-    (reply: string) => {
+    async (reply: string) => {
       if (!supportsVoiceOutput) return
+      const speechGeneration = ++speechGenerationRef.current
       window.speechSynthesis.cancel()
+      setIsSpeaking(false)
+      const voice = await waitForVietnameseVoice(window.speechSynthesis)
+      if (speechGeneration !== speechGenerationRef.current) return
+
       const utterance = new SpeechSynthesisUtterance(
         stripMarkdownForSpeech(reply),
       )
       utterance.lang = "vi-VN"
-      utterance.rate = 0.96
-      const voice = window.speechSynthesis
-        .getVoices()
-        .find((item) => item.lang.toLowerCase().startsWith("vi"))
+      utterance.rate = 0.88
+      utterance.pitch = 1
       if (voice) utterance.voice = voice
-      utterance.onstart = () => setIsSpeaking(true)
-      utterance.onend = () => setIsSpeaking(false)
-      utterance.onerror = () => setIsSpeaking(false)
+      utterance.onstart = () => {
+        if (speechGeneration === speechGenerationRef.current)
+          setIsSpeaking(true)
+      }
+      utterance.onend = () => {
+        if (speechGeneration === speechGenerationRef.current)
+          setIsSpeaking(false)
+      }
+      utterance.onerror = () => {
+        if (speechGeneration === speechGenerationRef.current)
+          setIsSpeaking(false)
+      }
       window.speechSynthesis.speak(utterance)
     },
     [supportsVoiceOutput],
@@ -158,7 +174,7 @@ export default function Chatbox() {
         )
         if (conversationGenerationRef.current !== conversationGeneration) return
         setMessages((previous) => [...previous, assistantMessage].slice(-30))
-        speakReply(reply)
+        void speakReply(reply)
       } catch {
         if (conversationGenerationRef.current !== conversationGeneration) return
         const fallback = "Không kết nối được trợ lý. Vui lòng thử lại."
@@ -166,7 +182,7 @@ export default function Chatbox() {
           ...previous,
           createChatMessage("assistant", fallback, Date.now() + 1),
         ])
-        speakReply(fallback)
+        void speakReply(fallback)
       } finally {
         if (conversationGenerationRef.current === conversationGeneration) {
           setIsTyping(false)
