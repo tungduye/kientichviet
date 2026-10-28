@@ -2,8 +2,10 @@ import { useState, FormEvent } from "react"
 import { Icon, Logo } from "../Shared"
 import { Link } from "react-router-dom"
 import { toast } from "../Motion"
+import { useSiteContent } from "../../context/SiteContentContext"
 
 export default function Footer() {
+  const { text } = useSiteContent()
   const [newsletterEmail, setNewsletterEmail] = useState("")
   const [isSubscribed, setIsSubscribed] = useState(false)
 
@@ -23,18 +25,14 @@ export default function Footer() {
       <div className="footer-top reveal">
         <div className="footer-brand">
           <Logo light />
-          <p className="footer-tagline">
-            Dựng hình di sản,
-            <br />
-            nối nhịp thời gian.
-          </p>
+          <p className="footer-tagline">{text("footer.tagline")}</p>
         </div>
         <div className="footer-links">
           <div>
             <strong>Khám phá</strong>
             <Link to="/our-story">Về chúng tôi</Link>
-            <Link to="/products">Sản phẩm</Link>
-            <Link to="/heritage">Khám phá di sản</Link>
+            <Link to="/products">{text("nav.products")}</Link>
+            <Link to="/heritage">{text("nav.heritage")}</Link>
           </div>
           <div>
             <strong>Kết nối</strong>
@@ -55,9 +53,9 @@ export default function Footer() {
           </div>
           <div>
             <strong>Liên hệ</strong>
-            <span>Hotline: 0982 127 964</span>
-            <span>Email: kientichviet.official@gmail.com</span>
-            <span>Địa chỉ: 68 Doãn Kế Thiện, Phú Diễn, Hà Nội</span>
+            <span>Hotline: {text("footer.phone")}</span>
+            <span>Email: {text("footer.email")}</span>
+            <span>Địa chỉ: {text("footer.address")}</span>
           </div>
         </div>
         <div className="newsletter">

@@ -5,12 +5,14 @@ import { Icon, Logo } from "../Shared"
 import { useCart } from "../../context/CartContext"
 
 import { Link, useLocation } from "react-router-dom"
+import { useSiteContent } from "../../context/SiteContentContext"
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const headerRef = useRef<HTMLElement>(null)
   const { cartCount, setCartOpen } = useCart()
+  const { text } = useSiteContent()
   const location = useLocation()
   const isHome = location.pathname === "/"
   const isHeritage = location.pathname.startsWith("/heritage")
@@ -100,21 +102,21 @@ export default function Header() {
             }
           }}
         >
-          Trang chủ
+          {text("nav.home")}
         </Link>
         <Link
           to="/our-story"
           className={location.pathname.startsWith("/our-story") ? "active" : ""}
           onClick={() => setMenuOpen(false)}
         >
-          Về chúng tôi
+          {text("nav.story")}
         </Link>
         <Link
           to="/products"
           className={location.pathname.startsWith("/products") ? "active" : ""}
           onClick={() => setMenuOpen(false)}
         >
-          Sản phẩm
+          {text("nav.products")}
         </Link>
         <Link
           to="/heritage"
@@ -129,7 +131,7 @@ export default function Header() {
             }
           }}
         >
-          Khám phá di sản
+          {text("nav.heritage")}
         </Link>
       </nav>
       <div className="header-actions">

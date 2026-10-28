@@ -11,6 +11,7 @@ import {
   stripMarkdownForSpeech,
 } from "../features/chat/chatSession"
 import { supabase } from "../integrations/supabase/client"
+import { useSiteContent } from "../context/SiteContentContext"
 
 const MASCOT_IMAGE = "/images/linh-vat-kien-tich.png"
 const STARTER_QUESTIONS = [
@@ -55,6 +56,7 @@ function getSpeechRecognitionConstructor(): SpeechRecognitionConstructor | null 
 }
 
 export default function Chatbox() {
+  const { text } = useSiteContent()
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<ChatMessage[]>(() =>
     typeof window === "undefined" ? [] : loadChatHistory(window.localStorage),
@@ -268,8 +270,8 @@ export default function Chatbox() {
                 <img src={MASCOT_IMAGE} alt="Linh vật Kiến Tích Việt" />
               </span>
               <div>
-                <h3>Trợ lý Kiến Tích Việt</h3>
-                <small>Hỏi bằng chữ hoặc giọng nói</small>
+                <h3>{text("chat.title")}</h3>
+                <small>{text("chat.subtitle")}</small>
               </div>
             </div>
             <div className="chat-header-actions">
@@ -293,11 +295,8 @@ export default function Chatbox() {
                 <span className="chat-mascot-frame chat-mascot-welcome">
                   <img src={MASCOT_IMAGE} alt="" />
                 </span>
-                <h4>Xin chào! Tôi là trợ lý di sản.</h4>
-                <p>
-                  Tôi có thể kể hai câu chuyện Tháp Rùa và Phố Hàng Trống, hướng
-                  dẫn lắp ghép, NFC và trải nghiệm AR.
-                </p>
+                <h4>{text("chat.welcomeTitle")}</h4>
+                <p>{text("chat.welcomeBody")}</p>
                 <div className="chat-starter-list">
                   {STARTER_QUESTIONS.map((question) => (
                     <button
@@ -384,7 +383,7 @@ export default function Chatbox() {
                   void handleSend(inputValue)
                 }
               }}
-              placeholder={isListening ? "Đang nghe…" : "Nhập câu hỏi của bạn…"}
+              placeholder={isListening ? "Đang nghe…" : text("chat.placeholder")}
               maxLength={2000}
               rows={1}
             />

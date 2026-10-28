@@ -118,11 +118,43 @@ export type Database = {
         }
         Relationships: []
       }
+      site_content: {
+        Row: { content_key: string; published_value: string; is_visible: boolean; revision: number; published_at: string; published_by: string | null }
+        Insert: { content_key: string; published_value?: string; is_visible?: boolean; revision?: number; published_at?: string; published_by?: string | null }
+        Update: { content_key?: string; published_value?: string; is_visible?: boolean; revision?: number; published_at?: string; published_by?: string | null }
+        Relationships: []
+      }
+      site_content_drafts: {
+        Row: { content_key: string; draft_value: string; is_visible: boolean; updated_at: string; updated_by: string | null }
+        Insert: { content_key: string; draft_value?: string; is_visible?: boolean; updated_at?: string; updated_by?: string | null }
+        Update: { content_key?: string; draft_value?: string; is_visible?: boolean; updated_at?: string; updated_by?: string | null }
+        Relationships: []
+      }
+      site_content_revisions: {
+        Row: { id: number; content_key: string; value: string; is_visible: boolean; revision: number; created_at: string; created_by: string | null }
+        Insert: { id?: number; content_key: string; value: string; is_visible: boolean; revision: number; created_at?: string; created_by?: string | null }
+        Update: { id?: number; content_key?: string; value?: string; is_visible?: boolean; revision?: number; created_at?: string; created_by?: string | null }
+        Relationships: []
+      }
+      ar_experiences: {
+        Row: { product_id: string; enabled: boolean; target_url: string | null; model_url: string | null; scale: number; offset_x: number; offset_y: number; offset_z: number; rotation_x: number; rotation_y: number; rotation_z: number; updated_at: string }
+        Insert: { product_id: string; enabled?: boolean; target_url?: string | null; model_url?: string | null; scale?: number; offset_x?: number; offset_y?: number; offset_z?: number; rotation_x?: number; rotation_y?: number; rotation_z?: number; updated_at?: string }
+        Update: { product_id?: string; enabled?: boolean; target_url?: string | null; model_url?: string | null; scale?: number; offset_x?: number; offset_y?: number; offset_z?: number; rotation_x?: number; rotation_y?: number; rotation_z?: number; updated_at?: string }
+        Relationships: []
+      }
     }
 
-    Views: { [_ in never]: never }
+    Views: {
+      site_content_public: {
+        Row: { content_key: string | null; published_value: string | null; is_visible: boolean | null; revision: number | null; published_at: string | null }
+        Relationships: []
+      }
+    }
 
-    Functions: { [_ in never]: never }
+    Functions: {
+      publish_all_site_content: { Args: Record<PropertyKey, never>; Returns: number }
+      restore_site_content_revision: { Args: { target_key: string; target_revision: number }; Returns: boolean }
+    }
 
     Enums: { [_ in never]: never }
 

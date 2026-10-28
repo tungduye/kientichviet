@@ -1,0 +1,42 @@
+import type { ContentFieldDefinition } from "./siteContent"
+
+export const SITE_CONTENT_FIELDS: ContentFieldDefinition[] = [
+  { key: "nav.home", page: "Toàn trang", group: "Menu", label: "Trang chủ", type: "text", defaultValue: "Trang chủ" },
+  { key: "nav.story", page: "Toàn trang", group: "Menu", label: "Câu chuyện", type: "text", defaultValue: "Câu chuyện" },
+  { key: "nav.products", page: "Toàn trang", group: "Menu", label: "Sản phẩm", type: "text", defaultValue: "Sản phẩm" },
+  { key: "nav.heritage", page: "Toàn trang", group: "Menu", label: "Di sản số", type: "text", defaultValue: "Di sản số" },
+  { key: "footer.tagline", page: "Toàn trang", group: "Footer", label: "Giới thiệu ngắn", type: "textarea", defaultValue: "Mô hình lắp ghép gỗ 3D tái hiện di sản Việt Nam — nơi ký ức được dựng hình và câu chuyện được tiếp nối." },
+  { key: "footer.address", page: "Toàn trang", group: "Footer", label: "Địa chỉ", type: "text", defaultValue: "Hà Nội, Việt Nam" },
+  { key: "footer.email", page: "Toàn trang", group: "Footer", label: "Email", type: "text", defaultValue: "kientichviet.contact@gmail.com" },
+  { key: "footer.phone", page: "Toàn trang", group: "Footer", label: "Điện thoại", type: "text", defaultValue: "(+84) 000 000 000" },
+  { key: "home.hero.eyebrow", page: "Trang chủ", group: "Hero", label: "Dòng giới thiệu", type: "text", defaultValue: "Từ di sản Việt đến mô hình lắp ghép gỗ 3D" },
+  { key: "home.hero.title1", page: "Trang chủ", group: "Hero", label: "Tiêu đề dòng 1", type: "text", defaultValue: "Dựng hình di sản," },
+  { key: "home.hero.title2", page: "Trang chủ", group: "Hero", label: "Tiêu đề dòng 2", type: "text", defaultValue: "nối nhịp thời gian." },
+  { key: "home.hero.body", page: "Trang chủ", group: "Hero", label: "Mô tả", type: "textarea", defaultValue: "Mỗi mô hình là một hành trình chạm vào lịch sử, tự tay lắp ghép và kể lại câu chuyện văn hóa Việt theo cách của riêng bạn." },
+  { key: "home.hero.cta", page: "Trang chủ", group: "Hero", label: "Nút chính", type: "text", defaultValue: "Khám phá sản phẩm" },
+  { key: "home.hero.ctaUrl", page: "Trang chủ", group: "Hero", label: "Liên kết nút chính", type: "url", defaultValue: "/products" },
+  { key: "home.products.kicker", page: "Trang chủ", group: "Sản phẩm", label: "Nhãn mục", type: "text", defaultValue: "02 – Bộ sưu tập" },
+  { key: "home.products.title", page: "Trang chủ", group: "Sản phẩm", label: "Tiêu đề", type: "text", defaultValue: "DỰNG NÊN NHỮNG BIỂU TƯỢNG" },
+  { key: "home.products.body", page: "Trang chủ", group: "Sản phẩm", label: "Mô tả", type: "textarea", defaultValue: "Từng mảnh ghép được thiết kế để bạn tự tay dựng lại những công trình mang dấu ấn Việt Nam." },
+  { key: "home.digital.kicker", page: "Trang chủ", group: "Trải nghiệm số", label: "Nhãn mục", type: "text", defaultValue: "03 – Công nghệ kết nối" },
+  { key: "home.digital.title", page: "Trang chủ", group: "Trải nghiệm số", label: "Tiêu đề", type: "text", defaultValue: "CHẠM ĐỂ CÂU CHUYỆN SỐNG DẬY" },
+  { key: "home.digital.body", page: "Trang chủ", group: "Trải nghiệm số", label: "Mô tả", type: "textarea", defaultValue: "NFC, audio và AR mở ra lớp nội dung số phía sau mỗi mô hình." },
+  { key: "home.journal.kicker", page: "Trang chủ", group: "Câu chuyện", label: "Nhãn mục", type: "text", defaultValue: "04 – Câu chuyện di sản" },
+  { key: "home.journal.title", page: "Trang chủ", group: "Câu chuyện", label: "Tiêu đề", type: "textarea", defaultValue: "Mỗi công trình\nđều có một câu chuyện." },
+  { key: "home.journal.body", page: "Trang chủ", group: "Câu chuyện", label: "Mô tả", type: "textarea", defaultValue: "Khám phá lịch sử, kiến trúc và những câu chuyện văn hóa phía sau mỗi công trình di sản Việt Nam." },
+  { key: "products.kicker", page: "Sản phẩm", group: "Đầu trang", label: "Nhãn mục", type: "text", defaultValue: "Bộ sưu tập" },
+  { key: "products.title", page: "Sản phẩm", group: "Đầu trang", label: "Tiêu đề", type: "text", defaultValue: "MÔ HÌNH DI SẢN VIỆT" },
+  { key: "products.body", page: "Sản phẩm", group: "Đầu trang", label: "Mô tả", type: "textarea", defaultValue: "Tự tay dựng lại những công trình mang dấu ấn Việt Nam." },
+  { key: "heritage.hub.kicker", page: "Di sản số", group: "Đầu trang", label: "Nhãn mục", type: "text", defaultValue: "Không gian di sản số" },
+  { key: "heritage.hub.title", page: "Di sản số", group: "Đầu trang", label: "Tiêu đề", type: "text", defaultValue: "Chạm vào ký ức Việt" },
+  { key: "heritage.hub.body", page: "Di sản số", group: "Đầu trang", label: "Mô tả", type: "textarea", defaultValue: "Khám phá câu chuyện, âm thanh và mô hình 3D của từng di sản." },
+  { key: "chat.title", page: "Trợ lý AI", group: "Khung chat", label: "Tên trợ lý", type: "text", defaultValue: "Trợ lý Kiến Tích Việt" },
+  { key: "chat.subtitle", page: "Trợ lý AI", group: "Khung chat", label: "Dòng phụ", type: "text", defaultValue: "Hỏi bằng chữ hoặc giọng nói" },
+  { key: "chat.welcomeTitle", page: "Trợ lý AI", group: "Khung chat", label: "Lời chào", type: "text", defaultValue: "Xin chào! Tôi là trợ lý di sản." },
+  { key: "chat.welcomeBody", page: "Trợ lý AI", group: "Khung chat", label: "Mô tả", type: "textarea", defaultValue: "Tôi có thể kể hai câu chuyện Tháp Rùa và Phố Hàng Trống, hướng dẫn lắp ghép, NFC và trải nghiệm AR." },
+  { key: "chat.placeholder", page: "Trợ lý AI", group: "Khung chat", label: "Ô nhập", type: "text", defaultValue: "Nhập câu hỏi của bạn…" },
+]
+
+export const SITE_CONTENT_BY_KEY = new Map(
+  SITE_CONTENT_FIELDS.map((field) => [field.key, field]),
+)

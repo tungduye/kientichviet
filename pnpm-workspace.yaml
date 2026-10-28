@@ -1,0 +1,8 @@
+allowBuilds:
+  canvas: false
+  core-js: false
+overrides:
+  mind-ar>canvas: '-'
+  mind-ar>@vitejs/plugin-basic-ssl: '-'
+patchedDependencies:
+  mind-ar@1.2.5: patches/mind-ar@1.2.5.patch

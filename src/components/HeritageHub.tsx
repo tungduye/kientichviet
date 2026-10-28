@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom"
 
 import { useCatalog } from "../context/CatalogContext"
+import { useSiteContent } from "../context/SiteContentContext"
 
 import {
   Sparkles,
@@ -16,6 +17,7 @@ import {
 
 export default function HeritageHub() {
   const { products } = useCatalog()
+  const { text } = useSiteContent()
 
   const heritageCardsData = [
     {
@@ -210,7 +212,7 @@ export default function HeritageHub() {
                 }}
               >
                 <Sparkles size={14} />
-                KHÁM PHÁ DI SẢN · KIẾN TÍCH VIỆT
+                {text("heritage.hub.kicker")}
               </span>
             </div>
 
@@ -230,7 +232,7 @@ export default function HeritageHub() {
                 textShadow: "0 4px 25px rgba(0, 0, 0, 0.7)",
               }}
             >
-              Kho Tàng Di Sản Thăng Long — Hà Nội
+              {text("heritage.hub.title")}
             </h1>
 
             {/* Subtitle */}
@@ -251,9 +253,7 @@ export default function HeritageHub() {
                 fontStyle: "italic",
               }}
             >
-              Không gian số lưu giữ và tôn vinh kiến trúc Việt. Mời bạn lựa chọn
-              một di sản bên dưới để lắng nghe thuyết minh âm thanh đa giác quan
-              và trải nghiệm mô hình 3D AR tương tác.
+              {text("heritage.hub.body")}
             </p>
 
             {/* Feature Highlights Pills Bar */}

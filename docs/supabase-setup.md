@@ -2,13 +2,15 @@
 
 Never commit `.env.local`, database passwords, service-role keys, Gemini keys or an admin password.
 
-## 1. Apply the catalog migration
+## 1. Apply the database migrations
 
 Open the Supabase SQL Editor for project `veuzowtvsbxnyrfdbgfz`, copy the entire contents of:
 
 `supabase/migrations/20261028161000_product_catalog_admin.sql`
 
 Run it once. It creates the catalog settings, the admin allowlist, the public product-image bucket and the RLS policies.
+
+Then run `supabase/migrations/20261028234500_site_cms_and_ar.sql`. It creates draft/published website content, revision history and per-product AR configuration with Row Level Security.
 
 ## 2. Create and authorize the administrator
 
@@ -54,4 +56,10 @@ supabase secrets set ALLOWED_PREVIEW_ORIGINS=https://your-preview.example --proj
 
 ## 5. Use the admin page
 
-Open `/quan-tri`, sign in with the administrator account, and edit the image, displayed price or visibility. The customer navigation intentionally does not link to this route.
+Open `/quan-tri`, sign in with the administrator account, then use:
+
+- **Sản phẩm** to edit image, price and visibility.
+- **Nội dung website** to save drafts, preview with `?preview=draft`, publish, or restore a prior revision.
+- **Web AR** to enable each product and configure its `.glb` model and optional compiled `.mind` image target.
+
+MindAR image tracking needs a visually distinctive source image compiled to `.mind`. Until that file is supplied, `/ar/:productId` deliberately falls back to the device's plane-placement AR through `<model-viewer>`. Camera access is requested only after the visitor presses the start button and production must use HTTPS.

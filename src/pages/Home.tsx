@@ -5,6 +5,7 @@ import { Icon, LinkButton, stories } from "../components/Shared"
 import { useCatalog } from "../context/CatalogContext"
 
 import { Link } from "react-router-dom"
+import { useSiteContent } from "../context/SiteContentContext"
 
 const heritageImage = "/images/thap-rua.jpg"
 
@@ -31,6 +32,7 @@ function SoundIcon() {
 
 export default function Home() {
   const { products } = useCatalog()
+  const { text, visible } = useSiteContent()
   const [playing, setPlaying] = useState(false)
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -73,23 +75,19 @@ export default function Home() {
           <div className="hero-copy">
             <div className="eyebrow">
               <span />
-              Từ di sản Việt đến mô hình lắp ghép gỗ 3D
+              {text("home.hero.eyebrow")}
             </div>
 
             <h1 id="hero-title">
-              <span>Dựng hình di sản,</span>
-              <em>nối nhịp thời gian.</em>
+              <span>{text("home.hero.title1")}</span>
+              <em>{text("home.hero.title2")}</em>
             </h1>
 
-            <p className="hero-description">
-              Tái hiện di sản Việt Nam qua mô hình lắp ghép gỗ 3D, để bạn tự tay
-              lắp ráp, trưng bày và khám phá những câu chuyện phía sau mỗi công
-              trình.
-            </p>
+            {visible("home.hero.body") && <p className="hero-description">{text("home.hero.body")}</p>}
 
             <div className="hero-actions">
-              <Link className="primary-button" to="/products">
-                Khám phá sản phẩm <ArrowIcon />
+              <Link className="primary-button" to={text("home.hero.ctaUrl") || "/products"}>
+                {text("home.hero.cta")} <ArrowIcon />
               </Link>
               <a className="text-button" href="/#story">
                 Về Kiến Tích Việt
@@ -226,12 +224,11 @@ export default function Home() {
       <section className="products section-pad" id="products">
         <div className="products-head reveal">
           <div className="section-heading reveal">
-            <p className="kicker">02. Sản phẩm</p>
+            <p className="kicker">{text("home.products.kicker")}</p>
             <h2>
-              Di sản Việt
-              <br />
-              qua từng mảnh ghép
+              {text("home.products.title")}
             </h2>
+            <p>{text("home.products.body")}</p>
           </div>
           <Link className="text-link" to="/products">
             Xem tất cả sản phẩm <Icon name="arrow" />
@@ -374,16 +371,9 @@ export default function Home() {
           </div>
         </div>
         <div className="tech-copy reveal">
-          <p className="kicker light">03 – Trải nghiệm số</p>
-          <h2>
-            Một cú chạm.
-            <br />
-            Cả ngàn câu chuyện.
-          </h2>
-          <p>
-            Mỗi mô hình không chỉ để lắp ráp và trưng bày. Chạm NFC để khám phá
-            thêm những câu chuyện về di sản Việt Nam.
-          </p>
+          <p className="kicker light">{text("home.digital.kicker")}</p>
+          <h2>{text("home.digital.title")}</h2>
+          <p>{text("home.digital.body")}</p>
           <div className="tech-features">
             <div>
               <Icon name="nfc" />
@@ -412,16 +402,9 @@ export default function Home() {
 
       <section className="journal section-pad" id="journal">
         <div className="journal-intro reveal">
-          <p className="kicker">04 – Câu chuyện di sản</p>
-          <h2>
-            Mỗi công trình
-            <br />
-            đều có một câu chuyện.
-          </h2>
-          <p>
-            Khám phá lịch sử, kiến trúc và những câu chuyện văn hóa phía sau mỗi
-            công trình di sản Việt Nam.
-          </p>
+          <p className="kicker">{text("home.journal.kicker")}</p>
+          <h2>{text("home.journal.title").split("\n").map((line, index) => <span key={`${line}-${index}`}>{index > 0 && <br />}{line}</span>)}</h2>
+          <p>{text("home.journal.body")}</p>
           <Link className="text-link" to="/heritage">
             Khám phá di sản <Icon name="arrow" />
           </Link>

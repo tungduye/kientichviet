@@ -7,6 +7,8 @@ import {
   type CatalogVariant,
 } from "../features/catalog/catalog"
 import { supabase } from "../integrations/supabase/client"
+import AdminContentEditor from "../components/admin/AdminContentEditor"
+import AdminArEditor from "../components/admin/AdminArEditor"
 
 interface EditorItem {
   key: string
@@ -252,6 +254,7 @@ export default function AdminCatalog() {
   const [checkingSession, setCheckingSession] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
   const [accessStatus, setAccessStatus] = useState("")
+  const [activeTab, setActiveTab] = useState<"products" | "content" | "ar">("products")
 
   const verifyAdmin = async (nextUser: User | null) => {
     setUser(nextUser)
@@ -355,8 +358,8 @@ export default function AdminCatalog() {
       <header className="admin-header">
         <div>
           <p className="admin-kicker">Kiến Tích Việt</p>
-          <h1>Quản trị sản phẩm</h1>
-          <p>Thay ảnh, sửa giá và ẩn/hiện trên website khách hàng.</p>
+          <h1>Quản trị website</h1>
+          <p>Sản phẩm, nội dung trang khách và trải nghiệm Web AR.</p>
         </div>
         <div className="admin-header-actions">
           <a href="/" target="_blank" rel="noreferrer">
@@ -368,12 +371,18 @@ export default function AdminCatalog() {
         </div>
       </header>
 
-      {error && (
+      <nav className="admin-tabs" aria-label="Chức năng quản trị">
+        <button className={activeTab === "products" ? "active" : ""} onClick={() => setActiveTab("products")}>Sản phẩm</button>
+        <button className={activeTab === "content" ? "active" : ""} onClick={() => setActiveTab("content")}>Nội dung website</button>
+        <button className={activeTab === "ar" ? "active" : ""} onClick={() => setActiveTab("ar")}>Web AR</button>
+      </nav>
+
+      {activeTab === "products" && error && (
         <p className="admin-error" role="alert">
           {error}
         </p>
       )}
-      {loading ? (
+      {activeTab === "products" && (loading ? (
         <p>Đang tải danh mục…</p>
       ) : (
         <section className="admin-product-grid" aria-label="Danh mục sản phẩm">
@@ -381,7 +390,9 @@ export default function AdminCatalog() {
             <CatalogEditorCard key={item.key} item={item} onSaved={refresh} />
           ))}
         </section>
-      )}
+      ))}
+      {activeTab === "content" && <AdminContentEditor user={user} />}
+      {activeTab === "ar" && <AdminArEditor />}
     </main>
   )
 }

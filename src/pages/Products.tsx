@@ -5,6 +5,7 @@ import { Icon, LinkButton } from "../components/Shared"
 import { useCatalog } from "../context/CatalogContext"
 
 import { Link } from "react-router-dom"
+import { useSiteContent } from "../context/SiteContentContext"
 
 const THEME_CATEGORIES = [
   { value: "Tất cả", shortLabel: "Tất cả", dropdownLabel: "Chủ đề: Tất cả" },
@@ -36,6 +37,7 @@ const THEME_CATEGORIES = [
 
 export default function Products() {
   const { products } = useCatalog()
+  const { text } = useSiteContent()
   const [searchTerm, setSearchTerm] = useState("")
 
   const [filterCategory, setFilterCategory] = useState("Tất cả")
@@ -92,15 +94,9 @@ export default function Products() {
     <>
       <section className="shop-hero">
         <div className="reveal">
-          <p className="kicker">Bộ sưu tập Kiến Tích Việt</p>
-          <h1>
-            Mang dáng hình di sản <em>về không gian của bạn.</em>
-          </h1>
-          <p className="hero-description">
-            Mỗi mô hình tái hiện dáng hình một công trình di sản Việt Nam, để
-            bạn tự tay lắp ghép, trưng bày và khám phá những câu chuyện văn hóa
-            qua NFC.
-          </p>
+          <p className="kicker">{text("products.kicker")}</p>
+          <h1>{text("products.title")}</h1>
+          <p className="hero-description">{text("products.body")}</p>
         </div>
         <div className="shop-hero-stats reveal">
           <div className="hero-stat-card">
