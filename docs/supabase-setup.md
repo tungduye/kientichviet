@@ -1,6 +1,6 @@
 # Supabase setup for Kiến Tích Việt
 
-Never commit `.env.local`, database passwords, service-role keys, Gemini keys or an admin password.
+Never commit `.env.local`, database passwords, service-role keys, OpenAI keys or an admin password.
 
 ## 1. Apply the database migrations
 
@@ -34,10 +34,10 @@ Copy `.env.example` to `.env.local` and replace the publishable-key placeholder.
 
 ## 4. Deploy Edge Functions
 
-Set the Gemini secret in Supabase; do not put it in Git:
+Set the OpenAI secrets in Supabase; do not put them in Git:
 
 ```powershell
-supabase secrets set GOOGLE_API_KEY=YOUR_KEY --project-ref veuzowtvsbxnyrfdbgfz
+supabase secrets set OPENAI_API_KEY=YOUR_KEY OPENAI_MODEL=gpt-5.6-luna --project-ref veuzowtvsbxnyrfdbgfz
 ```
 
 Deploy the functions used by the website:
