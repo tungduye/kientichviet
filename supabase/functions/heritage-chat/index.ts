@@ -198,11 +198,11 @@ Deno.serve(async (req) => {
 
     // - gemini-3.8-flash: Model Gemini 3.8 Flash trong bảng hạn ngạch Google AI Studio của bạn
 
-    // - gemini-3.5-flash: Model dự phòng có tỷ lệ sẵn sàng cao, đảm bảo không bị gián đoạn khi 3.8-flash chạm trần ngày
+    // - gemini-3.6-flash: Model dự phòng ổn định khi 3.8-flash chạm hạn mức hoặc tạm gián đoạn
 
     const PRIMARY_MODEL = "gemini-3.8-flash"
 
-    const FALLBACK_MODEL = "gemini-3.5-flash"
+    const FALLBACK_MODEL = "gemini-3.6-flash"
 
     // Trộn ngẫu nhiên các key để phân tải đều giữa các dự án (load balancing)
 
