@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router-dom"
 
-import { products, findProduct } from "../data/products"
+import { useCatalog } from "../context/CatalogContext"
 
 import { Icon, LinkButton } from "../components/Shared"
 
@@ -8,20 +8,40 @@ import { useCart } from "../context/CartContext"
 
 import { useState, useRef, useEffect } from "react"
 
+import { buildVariantProduct } from "../features/products/productVariants"
+
 export default function ProductDetail() {
+  const { products, findProduct, getVariants } = useCatalog()
   const { slug } = useParams<{ slug: string }>()
 
   const { addToCart } = useCart()
 
   const [playing, setPlaying] = useState(false)
+
+  const [selectedVariantId, setSelectedVariantId] = useState("basic")
+
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
   const product = findProduct(slug)
 
+  const variants = product ? getVariants(product) : []
+
+  const selectedVariant =
+    variants.find((variant) => variant.id === selectedVariantId) ?? variants[0]
+
+  const selectedProduct =
+    product && selectedVariant
+      ? buildVariantProduct(product, selectedVariant)
+      : product
+
   useEffect(() => {
     setPlaying(false)
+
+    setSelectedVariantId("basic")
+
     if (audioRef.current) {
       audioRef.current.pause()
+
       audioRef.current.currentTime = 0
     }
   }, [slug])
@@ -36,13 +56,17 @@ export default function ProductDetail() {
 
   const handleTogglePlay = async () => {
     const audio = audioRef.current
+
     if (!audio) return
+
     if (playing) {
       audio.pause()
+
       setPlaying(false)
     } else {
       try {
         await audio.play()
+
         setPlaying(true)
       } catch (err) {
         console.error("Không thể phát âm thanh:", err)
@@ -66,7 +90,9 @@ export default function ProductDetail() {
       <div
         style={{
           padding: "150px 5vw 80px",
+
           display: "flex",
+
           justifyContent: "center",
         }}
       >
@@ -87,17 +113,72 @@ export default function ProductDetail() {
           }}
         >
           <div className="modal-image reveal" style={{ position: "relative" }}>
-            <img
-              className="reveal-image"
-              src={product.image}
-              alt={product.name}
-            />
+            {selectedVariant?.imageMode === "placeholder" &&
+            !selectedVariant.imageUrl ? (
+              <div
+                className="variant-image-placeholder"
+                role="img"
+                aria-label="Hình ảnh phiên bản Premium đang cập nhật"
+              >
+                <Icon name="sparkle" size={34} />
+                <strong>Premium Mosaic</strong>
+                <span>Hình ảnh đang được hoàn thiện</span>
+              </div>
+            ) : (
+              <img
+                className={`reveal-image ${
+                  selectedVariant?.imageMode === "monochrome" &&
+                  !selectedVariant.imageUrl
+                    ? "variant-image-monochrome"
+                    : ""
+                }`}
+                src={selectedProduct?.image || product.image}
+                alt={`${product.name}${
+                  selectedVariant ? ` phiên bản ${selectedVariant.name}` : ""
+                }`}
+              />
+            )}
             <span>Mô hình gỗ · Tỉ lệ 1:120</span>
           </div>
           <div className="modal-copy reveal stagger-1">
             <p className="kicker">{product.eyebrow}</p>
             <h2>{product.name}</h2>
             <p>{product.description}</p>
+            {variants.length > 0 && (
+              <div className="product-variant-picker">
+                <div className="variant-picker-heading">
+                  <strong>Chọn dòng sản phẩm</strong>
+                  <span>{selectedVariant?.finish}</span>
+                </div>
+                <div
+                  className="variant-options"
+                  role="radiogroup"
+                  aria-label="Dòng sản phẩm Tháp Rùa"
+                >
+                  {variants.map((variant) => (
+                    <button
+                      key={variant.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={selectedVariant?.id === variant.id}
+                      className={
+                        selectedVariant?.id === variant.id ? "is-selected" : ""
+                      }
+                      onClick={() => setSelectedVariantId(variant.id)}
+                    >
+                      <span>
+                        <strong>{variant.name}</strong>
+                        <small>{variant.finish}</small>
+                      </span>
+                      <b>{variant.price}</b>
+                    </button>
+                  ))}
+                </div>
+                <p className="variant-description">
+                  {selectedVariant?.description}
+                </p>
+              </div>
+            )}
             <div className="specs">
               <span>
                 <small>Số mảnh</small>
@@ -137,9 +218,15 @@ export default function ProductDetail() {
               </p>
             </div>
             <div className="modal-buy" style={{ marginTop: "35px" }}>
-              <strong>{product.price}</strong>
-              <button onClick={() => addToCart(product)}>
-                <span>Thêm vào giỏ</span>
+              <strong>{selectedProduct?.price}</strong>
+              <button
+                onClick={() => selectedProduct && addToCart(selectedProduct)}
+              >
+                <span>
+                  {selectedProduct?.price === "Liên hệ"
+                    ? "Yêu cầu tư vấn"
+                    : "Thêm vào giỏ"}
+                </span>
                 <Icon name="bag" />
               </button>
             </div>
@@ -247,7 +334,9 @@ export default function ProductDetail() {
               </button>
               <div className="audio-copy">
                 <small>{playing ? "Đang nghe" : "Thuyết minh Audio"}</small>
-                <strong>{product.audioTitle || `Sự tích ${product.name}`}</strong>
+                <strong>
+                  {product.audioTitle || `Sự tích ${product.name}`}
+                </strong>
                 <span className={`audio-wave ${playing ? "is-playing" : ""}`}>
                   {Array.from({ length: 17 }).map((_, index) => (
                     <i key={index} />
@@ -308,11 +397,17 @@ export default function ProductDetail() {
         <div
           style={{
             maxWidth: "600px",
+
             margin: "40px auto 0",
+
             textAlign: "center",
+
             padding: "40px",
+
             background: "#fff",
+
             borderRadius: "8px",
+
             boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
           }}
         >

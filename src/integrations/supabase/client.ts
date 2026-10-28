@@ -58,7 +58,7 @@ export const supabase = createClient<Database>(
     auth: {
       storage: brokeredPreviewStorage(),
 
-      persistSession: true,
+      persistSession: false,
 
       autoRefreshToken: true,
     },

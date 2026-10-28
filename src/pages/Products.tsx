@@ -2,30 +2,40 @@ import { useState, useMemo } from "react"
 
 import { Icon, LinkButton } from "../components/Shared"
 
-import { products } from "../data/products"
+import { useCatalog } from "../context/CatalogContext"
 
 import { Link } from "react-router-dom"
 
 const THEME_CATEGORIES = [
   { value: "Tất cả", shortLabel: "Tất cả", dropdownLabel: "Chủ đề: Tất cả" },
+
   {
     value: "Hà Nội · Hồ Gươm",
+
     shortLabel: "Hồ Gươm",
+
     dropdownLabel: "Chủ đề: Hồ Gươm",
   },
+
   {
     value: "Hà Nội · Di sản Thăng Long",
+
     shortLabel: "Thăng Long",
+
     dropdownLabel: "Chủ đề: Thăng Long",
   },
+
   {
     value: "Hà Nội · Phố cổ Hà Nội",
+
     shortLabel: "Phố cổ",
+
     dropdownLabel: "Chủ đề: Phố cổ",
   },
 ]
 
 export default function Products() {
+  const { products } = useCatalog()
   const [searchTerm, setSearchTerm] = useState("")
 
   const [filterCategory, setFilterCategory] = useState("Tất cả")
@@ -36,11 +46,13 @@ export default function Products() {
     let result = [...products]
 
     // Filter by category (eyebrow)
+
     if (filterCategory !== "Tất cả") {
       result = result.filter((p) => p.eyebrow === filterCategory)
     }
 
     // Filter by search
+
     if (searchTerm.trim() !== "") {
       const lowerSearch = searchTerm.toLowerCase()
 
@@ -54,6 +66,7 @@ export default function Products() {
     }
 
     // Sort
+
     if (sortBy !== "Mặc định") {
       result.sort((a, b) => {
         if (sortBy === "Tên A-Z") return a.name.localeCompare(b.name)
@@ -73,7 +86,7 @@ export default function Products() {
     }
 
     return result
-  }, [searchTerm, filterCategory, sortBy])
+  }, [products, searchTerm, filterCategory, sortBy])
 
   return (
     <>
@@ -84,8 +97,9 @@ export default function Products() {
             Mang dáng hình di sản <em>về không gian của bạn.</em>
           </h1>
           <p className="hero-description">
-            Mỗi mô hình tái hiện dáng hình một công trình di sản Việt Nam, để bạn
-            tự tay lắp ghép, trưng bày và khám phá những câu chuyện văn hóa qua NFC.
+            Mỗi mô hình tái hiện dáng hình một công trình di sản Việt Nam, để
+            bạn tự tay lắp ghép, trưng bày và khám phá những câu chuyện văn hóa
+            qua NFC.
           </p>
         </div>
         <div className="shop-hero-stats reveal">
@@ -173,7 +187,9 @@ export default function Products() {
           <div className="product-grid">
             {filteredAndSortedProducts.map((product) => (
               <article
-                className={`product-card reveal ${product.accent === "Sắp ra mắt" ? "is-upcoming" : ""}`}
+                className={`product-card reveal ${
+                  product.accent === "Sắp ra mắt" ? "is-upcoming" : ""
+                }`}
                 key={product.id}
                 data-slug={product.slug}
               >
@@ -185,7 +201,13 @@ export default function Products() {
                   <img src={product.image} alt={product.name} />
                   <span className="product-number">{product.number}</span>
                   <span
-                    className={`product-accent badge-${product.accent === "Mới" ? "new" : product.accent === "Bán chạy" ? "bestseller" : "upcoming"}`}
+                    className={`product-accent badge-${
+                      product.accent === "Mới"
+                        ? "new"
+                        : product.accent === "Bán chạy"
+                          ? "bestseller"
+                          : "upcoming"
+                    }`}
                   >
                     {product.accent}
                   </span>
@@ -199,13 +221,14 @@ export default function Products() {
                     <h3 className="product-title">
                       <Link to={`/products/${product.slug}`}>
                         {product.name}
-                        <span className="title-arrow" aria-hidden="true"> →</span>
+                        <span className="title-arrow" aria-hidden="true">
+                          {" "}
+                          →
+                        </span>
                       </Link>
                     </h3>
                     {product.description && (
-                      <p className="shop-desc">
-                        {product.description}
-                      </p>
+                      <p className="shop-desc">{product.description}</p>
                     )}
                     <div className="product-card-meta">
                       {product.specifications?.pieces ? (
@@ -228,10 +251,14 @@ export default function Products() {
                       {product.accent === "Sắp ra mắt" ? (
                         <>
                           <span className="price-label">Dự kiến</span>
-                          <strong className="product-price">{product.price}</strong>
+                          <strong className="product-price">
+                            {product.price}
+                          </strong>
                         </>
                       ) : (
-                        <strong className="product-price">{product.price}</strong>
+                        <strong className="product-price">
+                          {product.price}
+                        </strong>
                       )}
                     </div>
                     <Link
@@ -239,7 +266,9 @@ export default function Products() {
                       className="product-inline-cta"
                       aria-label={`Xem chi tiết ${product.name}`}
                     >
-                      {product.accent === "Sắp ra mắt" ? "Xem chi tiết" : "Khám phá"}
+                      {product.accent === "Sắp ra mắt"
+                        ? "Xem chi tiết"
+                        : "Khám phá"}
                     </Link>
                   </div>
                 </div>
@@ -254,12 +283,15 @@ export default function Products() {
             <button
               onClick={() => {
                 setSearchTerm("")
+
                 setFilterCategory("Tất cả")
+
                 setSortBy("Mặc định")
               }}
               className="button button-dark"
               style={{
                 border: "none",
+
                 cursor: "pointer",
               }}
             >
@@ -275,7 +307,6 @@ export default function Products() {
         <p>Mỗi mảnh ghép một dấu ấn,</p>
         <h2>mỗi mô hình một câu chuyện.</h2>
         <LinkButton href="/our-story">Câu chuyện thương hiệu</LinkButton>
-        <span className="statement-outline">KIẾN TÍCH VIỆT</span>
       </section>
     </>
   )

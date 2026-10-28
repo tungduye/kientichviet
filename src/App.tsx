@@ -20,24 +20,31 @@ import { CartProvider } from "./context/CartContext"
 
 import ScrollToTop from "./components/ScrollToTop"
 
+import { CatalogProvider } from "./context/CatalogContext"
+
+import AdminCatalog from "./pages/AdminCatalog"
+
 export default function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
-      <CartProvider>
-        <Routes>
-          <Route path="/" element={<MainLayout />}>
-            <Route index element={<Home />} />
-            <Route path="our-story" element={<OurStory />} />
-            <Route path="products" element={<Products />} />
-            <Route path="products/:slug" element={<ProductDetail />} />
-            <Route path="heritage" element={<Heritage />} />
-            <Route path="heritage/:id" element={<Heritage />} />
-            <Route path="cart" element={<Cart />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
-        </Routes>
-      </CartProvider>
+      <CatalogProvider>
+        <CartProvider>
+          <Routes>
+            <Route path="/quan-tri" element={<AdminCatalog />} />
+            <Route path="/" element={<MainLayout />}>
+              <Route index element={<Home />} />
+              <Route path="our-story" element={<OurStory />} />
+              <Route path="products" element={<Products />} />
+              <Route path="products/:slug" element={<ProductDetail />} />
+              <Route path="heritage" element={<Heritage />} />
+              <Route path="heritage/:id" element={<Heritage />} />
+              <Route path="cart" element={<Cart />} />
+              <Route path="*" element={<NotFound />} />
+            </Route>
+          </Routes>
+        </CartProvider>
+      </CatalogProvider>
     </BrowserRouter>
   )
 }

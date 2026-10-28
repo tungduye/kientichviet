@@ -6,7 +6,7 @@ import { Icon, LinkButton } from "../components/Shared"
 
 import AudioGuidePlayer from "../components/AudioGuidePlayer"
 
-import { products, findProduct } from "../data/products"
+import { useCatalog } from "../context/CatalogContext"
 
 import {
   Sparkles,
@@ -19,67 +19,14 @@ import {
 } from "lucide-react"
 
 import ModelViewer3D from "../components/ModelViewer3D"
+
 import HeritageHub from "../components/HeritageHub"
 
 export default function Heritage() {
+  const { products, findProduct } = useCatalog()
+
   const { id } = useParams<{ id: string }>()
-
-  // If no ID is specified in URL (e.g. visiting /heritage), show the selection hub
-  if (!id) {
-    return <HeritageHub />
-  }
-
   const product = findProduct(id)
-
-  if (!product) {
-    return (
-      <div
-        className="site-shell"
-        style={{
-          background: "#150a0b",
-
-          color: "#fff7ec",
-
-          height: "100vh",
-
-          display: "flex",
-
-          flexDirection: "column",
-
-          alignItems: "center",
-
-          justifyContent: "center",
-        }}
-      >
-        <h1
-          style={{
-            color: "var(--red)",
-
-            marginBottom: "15px",
-
-            fontFamily: '"Vollkorn", serif',
-          }}
-        >
-          Không tìm thấy nội dung di sản
-        </h1>
-        <p style={{ color: "rgba(255, 235, 209, 0.7)", marginBottom: "30px" }}>
-          Nội dung bạn đang tìm kiếm không tồn tại hoặc đã được di dời.
-        </p>
-        <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", justifyContent: "center" }}>
-          <LinkButton href="/heritage">Xem danh sách di sản</LinkButton>
-          <LinkButton href="/">Trở về trang chủ</LinkButton>
-        </div>
-      </div>
-    )
-  }
-
-  const otherHeritages = products.filter((p) => p.slug !== product.slug)
-
-  const isThapRua = product.slug === "thap-rua"
-
-  const isChuaMotCot = product.slug === "chua-mot-cot"
-
-  const isHangTrong = product.slug === "pho-hang-trong"
 
   const [is3DModalOpen, setIs3DModalOpen] = useState(false)
 
@@ -126,28 +73,89 @@ export default function Heritage() {
   }, [is3DModalOpen])
 
   // Prefetch 3D model files in background to eliminate load wait time
+
   useEffect(() => {
     if (!product?.modelUrl) return
 
     const timer = setTimeout(() => {
       const glbLink = document.createElement("link")
+
       glbLink.rel = "prefetch"
+
       glbLink.href = product.modelUrl!
+
       glbLink.as = "fetch"
+
       glbLink.crossOrigin = "anonymous"
+
       document.head.appendChild(glbLink)
 
       if (product.usdzUrl) {
         const usdzLink = document.createElement("link")
+
         usdzLink.rel = "prefetch"
+
         usdzLink.href = product.usdzUrl
+
         usdzLink.as = "fetch"
+
         document.head.appendChild(usdzLink)
       }
     }, 1200)
 
     return () => clearTimeout(timer)
   }, [product?.modelUrl, product?.usdzUrl])
+
+  // If no ID is specified in URL (e.g. visiting /heritage), show the selection hub
+  if (!id) {
+    return <HeritageHub />
+  }
+
+  if (!product) {
+    return (
+      <div
+        className="site-shell"
+        style={{
+          background: "#150a0b",
+          color: "#fff7ec",
+          height: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <h1
+          style={{
+            color: "var(--red)",
+            marginBottom: "15px",
+            fontFamily: '"Vollkorn", serif',
+          }}
+        >
+          Không tìm thấy nội dung di sản
+        </h1>
+        <p style={{ color: "rgba(255, 235, 209, 0.7)", marginBottom: "30px" }}>
+          Nội dung bạn đang tìm kiếm không tồn tại hoặc đã được di dời.
+        </p>
+        <div
+          style={{
+            display: "flex",
+            gap: "16px",
+            flexWrap: "wrap",
+            justifyContent: "center",
+          }}
+        >
+          <LinkButton href="/heritage">Xem danh sách di sản</LinkButton>
+          <LinkButton href="/">Trở về trang chủ</LinkButton>
+        </div>
+      </div>
+    )
+  }
+
+  const otherHeritages = products.filter((p) => p.slug !== product.slug)
+  const isThapRua = product.slug === "thap-rua"
+  const isChuaMotCot = product.slug === "chua-mot-cot"
+  const isHangTrong = product.slug === "pho-hang-trong"
 
   return (
     <div
@@ -1205,9 +1213,13 @@ export default function Heritage() {
 
                         borderRadius: "50%",
 
-                        background: product.modelUrl ? "#10b981" : "var(--gold)",
+                        background: product.modelUrl
+                          ? "#10b981"
+                          : "var(--gold)",
 
-                        boxShadow: product.modelUrl ? "0 0 10px #10b981" : "0 0 10px rgba(255, 209, 141, 0.5)",
+                        boxShadow: product.modelUrl
+                          ? "0 0 10px #10b981"
+                          : "0 0 10px rgba(255, 209, 141, 0.5)",
                       }}
                     />
                     <span
@@ -1217,7 +1229,9 @@ export default function Heritage() {
                         color: "rgba(255, 235, 209, 0.85)",
                       }}
                     >
-                      {product.modelUrl ? "Hỗ trợ iOS (QuickLook) & Android (WebXR)" : "Mô hình 3D & AR đang được hoàn thiện"}
+                      {product.modelUrl
+                        ? "Hỗ trợ iOS (QuickLook) & Android (WebXR)"
+                        : "Mô hình 3D & AR đang được hoàn thiện"}
                     </span>
                   </div>
 
@@ -1270,7 +1284,9 @@ export default function Heritage() {
                     aria-controls="heritage-3d-dialog"
                   >
                     <Box size={16} />
-                    <span>{product.modelUrl ? "Xem mẫu 3D" : "Sắp ra mắt"}</span>
+                    <span>
+                      {product.modelUrl ? "Xem mẫu 3D" : "Sắp ra mắt"}
+                    </span>
                   </button>
                 </div>
               </div>
@@ -1594,7 +1610,8 @@ export default function Heritage() {
                           textDecoration: "none",
                         }}
                       >
-                        {isCurrent ? "Đang khám phá" : "Khám phá di sản"} <ArrowRight size={15} />
+                        {isCurrent ? "Đang khám phá" : "Khám phá di sản"}{" "}
+                        <ArrowRight size={15} />
                       </Link>
                     </div>
                   </div>

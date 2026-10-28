@@ -1,6 +1,9 @@
 import { useState, useRef, useEffect } from "react"
+
 import { Icon, LinkButton, stories } from "../components/Shared"
-import { products } from "../data/products"
+
+import { useCatalog } from "../context/CatalogContext"
+
 import { Link } from "react-router-dom"
 
 const heritageImage = "/images/thap-rua.jpg"
@@ -27,7 +30,9 @@ function SoundIcon() {
 }
 
 export default function Home() {
+  const { products } = useCatalog()
   const [playing, setPlaying] = useState(false)
+
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
   useEffect(() => {
@@ -40,13 +45,17 @@ export default function Home() {
 
   const handleTogglePlay = async () => {
     const audio = audioRef.current
+
     if (!audio) return
+
     if (playing) {
       audio.pause()
+
       setPlaying(false)
     } else {
       try {
         await audio.play()
+
         setPlaying(true)
       } catch (err) {
         console.error("Không thể phát âm thanh:", err)
@@ -73,8 +82,9 @@ export default function Home() {
             </h1>
 
             <p className="hero-description">
-              Tái hiện di sản Việt Nam qua mô hình lắp ghép gỗ 3D, để bạn tự tay lắp
-              ráp, trưng bày và khám phá những câu chuyện phía sau mỗi công trình.
+              Tái hiện di sản Việt Nam qua mô hình lắp ghép gỗ 3D, để bạn tự tay
+              lắp ráp, trưng bày và khám phá những câu chuyện phía sau mỗi công
+              trình.
             </p>
 
             <div className="hero-actions">
@@ -166,20 +176,31 @@ export default function Home() {
           {[
             [
               "01",
+
               "Trải nghiệm",
+
               "Lắp ghép",
+
               "Khách hàng tự tay lắp ráp và hoàn thiện mô hình.",
             ],
+
             [
               "02",
+
               "Giá trị sử dụng",
+
               "Trưng bày",
+
               "Thành quả là một mô hình có tính thẩm mỹ, có thể đặt trong không gian sống hoặc sưu tầm.",
             ],
+
             [
               "03",
+
               "Giá trị văn hóa",
+
               "Khám phá",
+
               "Khách hàng tìm hiểu thêm về công trình và câu chuyện di sản thông qua nội dung số.",
             ],
           ].map(([number, en, title, text]) => (
@@ -219,7 +240,9 @@ export default function Home() {
         <div className="product-grid">
           {products.map((product) => (
             <article
-              className={`product-card reveal ${product.accent === "Sắp ra mắt" ? "is-upcoming" : ""}`}
+              className={`product-card reveal ${
+                product.accent === "Sắp ra mắt" ? "is-upcoming" : ""
+              }`}
               key={product.id}
               data-slug={product.slug}
             >
@@ -251,7 +274,10 @@ export default function Home() {
                   <h3 className="product-title">
                     <Link to={`/products/${product.slug}`}>
                       {product.name}
-                      <span className="title-arrow" aria-hidden="true"> →</span>
+                      <span className="title-arrow" aria-hidden="true">
+                        {" "}
+                        →
+                      </span>
                     </Link>
                   </h3>
                   {product.description && (
@@ -278,7 +304,9 @@ export default function Home() {
                     {product.accent === "Sắp ra mắt" ? (
                       <>
                         <span className="price-label">Dự kiến</span>
-                        <strong className="product-price">{product.price}</strong>
+                        <strong className="product-price">
+                          {product.price}
+                        </strong>
                       </>
                     ) : (
                       <strong className="product-price">{product.price}</strong>
@@ -289,7 +317,9 @@ export default function Home() {
                     className="product-inline-cta"
                     aria-label={`Xem chi tiết ${product.name}`}
                   >
-                    {product.accent === "Sắp ra mắt" ? "Xem chi tiết" : "Khám phá"}
+                    {product.accent === "Sắp ra mắt"
+                      ? "Xem chi tiết"
+                      : "Khám phá"}
                   </Link>
                 </div>
               </div>
@@ -374,10 +404,7 @@ export default function Home() {
               </span>
             </div>
           </div>
-          <LinkButton
-            href="/heritage"
-            dark
-          >
+          <LinkButton href="/heritage" dark>
             Khám phá trải nghiệm số
           </LinkButton>
         </div>
@@ -395,34 +422,37 @@ export default function Home() {
             Khám phá lịch sử, kiến trúc và những câu chuyện văn hóa phía sau mỗi
             công trình di sản Việt Nam.
           </p>
-          <Link
-            className="text-link"
-            to="/heritage"
-          >
+          <Link className="text-link" to="/heritage">
             Khám phá di sản <Icon name="arrow" />
           </Link>
         </div>
         <div className="story-list">
-          {stories.map((story, index) => {
-            const productSlug = story.slug || products[index]?.slug || "thap-rua"
-            return (
-              <Link
-                to={`/heritage/${productSlug}`}
-                className="story-item reveal"
-                key={story.title}
-              >
-                <span className="story-index">0{index + 1}</span>
-                <img src={story.image} alt="" />
-                <div>
-                  <p>{story.place}</p>
-                  <h3>{story.title}</h3>
-                </div>
-                <span className="story-arrow">
-                  <Icon name="arrow" />
-                </span>
-              </Link>
+          {stories
+            .filter((story) =>
+              products.some((product) => product.slug === story.slug),
             )
-          })}
+            .map((story, index) => {
+              const productSlug =
+                story.slug || products[index]?.slug || "thap-rua"
+
+              return (
+                <Link
+                  to={`/heritage/${productSlug}`}
+                  className="story-item reveal"
+                  key={story.title}
+                >
+                  <span className="story-index">0{index + 1}</span>
+                  <img src={story.image} alt="" />
+                  <div>
+                    <p>{story.place}</p>
+                    <h3>{story.title}</h3>
+                  </div>
+                  <span className="story-arrow">
+                    <Icon name="arrow" />
+                  </span>
+                </Link>
+              )
+            })}
         </div>
       </section>
 
@@ -431,7 +461,6 @@ export default function Home() {
         <p>Mỗi mảnh ghép một dấu ấn,</p>
         <h2>mỗi mô hình một câu chuyện.</h2>
         <LinkButton href="/products">Bắt đầu hành trình</LinkButton>
-        <span className="statement-outline">KIẾN TÍCH VIỆT</span>
       </section>
     </>
   )

@@ -2,7 +2,7 @@ import { ReactNode } from "react"
 
 import { Link, useLocation } from "react-router-dom"
 
-export type IconName = "arrow" | "bag" | "box" | "close" | "cube" | "headphones" | "menu" | "nfc" | "phone" | "play" | "plus" | "sparkle" | "trash"
+export type IconName = "arrow" | "bag" | "box" | "close" | "cube" | "headphones" | "menu" | "microphone" | "nfc" | "phone" | "play" | "plus" | "sparkle" | "trash"
 
 export { products, findProduct } from "../data/products"
 
@@ -11,20 +11,31 @@ export type { Product } from "../data/products"
 export const stories = [
   {
     title: "Biểu tượng trầm mặc giữa lòng Hồ Gươm",
+
     place: "Tháp Rùa Hồ Gươm · Hà Nội",
+
     image: "/images/thap-rua.jpg",
+
     slug: "thap-rua",
   },
+
   {
     title: "Một đóa sen giữa lòng Thăng Long",
+
     place: "Chùa Một Cột · Hà Nội",
+
     image: "/images/chua-mot-cot.jpg",
+
     slug: "chua-mot-cot",
   },
+
   {
     title: "Nơi lưu giữ sắc màu tranh dân gian",
+
     place: "Phố Hàng Trống · Hà Nội",
+
     image: "/images/pho-hang-trong.jpg",
+
     slug: "pho-hang-trong",
   },
 ]
@@ -64,6 +75,13 @@ export function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
     ),
 
     menu: <path d="M4 7h16M4 12h16M4 17h16" />,
+
+    microphone: (
+      <>
+        <rect x="9" y="3" width="6" height="11" rx="3" />
+        <path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M9 21h6" />
+      </>
+    ),
 
     nfc: (
       <>
@@ -124,11 +142,15 @@ export function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
 
 export function Logo({
   light = false,
+
   horizontal = false,
+
   onClick,
 }: {
   light?: boolean
+
   horizontal?: boolean
+
   onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void
 }) {
   const location = useLocation()
@@ -140,13 +162,17 @@ export function Logo({
 
     if (location.pathname === "/") {
       e.preventDefault()
+
       if (window.location.hash) {
         window.history.pushState(null, "", "/")
       }
+
       try {
         window.scrollTo({
           top: 0,
+
           left: 0,
+
           behavior: "smooth",
         })
       } catch {
@@ -156,7 +182,9 @@ export function Logo({
       try {
         window.scrollTo({
           top: 0,
+
           left: 0,
+
           behavior: "smooth",
         })
       } catch {
@@ -165,14 +193,20 @@ export function Logo({
     }
   }
 
-  const logoSrc = horizontal ? "/images/logo-horizontal.png" : "/images/logo.png"
+  const logoSrc = horizontal
+    ? "/images/logo-horizontal.png"
+    : "/images/logo.png"
+
   const logoWidth = horizontal ? 848 : 600
+
   const logoHeight = horizontal ? 244 : 725
 
   return (
     <Link
       aria-label="Kiến Tích Việt — Về đầu trang"
-      className={`brand-logo ${horizontal ? "brand-logo-horizontal" : "brand-logo-vertical"} ${light ? "is-light" : ""}`}
+      className={`brand-logo ${
+        horizontal ? "brand-logo-horizontal" : "brand-logo-vertical"
+      } ${light ? "is-light" : ""}`}
       to="/"
       onClick={handleClick}
       title="Về đầu trang"

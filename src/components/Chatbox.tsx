@@ -1,115 +1,246 @@
-import { useState, useRef, useEffect } from "react"
-
+import { useCallback, useEffect, useRef, useState } from "react"
 import ReactMarkdown from "react-markdown"
 
 import { Icon } from "./Shared"
-
+import {
+  ChatMessage,
+  buildScopedChatPrompt,
+  createChatMessage,
+  loadChatHistory,
+  saveChatHistory,
+  stripMarkdownForSpeech,
+} from "../features/chat/chatSession"
 import { supabase } from "../integrations/supabase/client"
 
-interface Message {
-  id: string
-
-  sender: "user" | "assistant"
-
-  text: string
-}
-
+const MASCOT_IMAGE = "/images/linh-vat-kien-tich.png"
 const STARTER_QUESTIONS = [
-  "Sản phẩm này có gì đặc biệt?",
-
-  "Sản phẩm này phù hợp với ai?",
-
-  "Có những sản phẩm nào khác?",
-
-  "Chuyện di sản của sản phẩm này là gì?",
-
-  "Tôi có thể khám phá AR như thế nào?",
+  "Tháp Rùa có những phiên bản nào?",
+  "Hướng dẫn tôi bắt đầu lắp ghép mô hình.",
+  "NFC trên sản phẩm dùng như thế nào?",
+  "Tôi có thể trải nghiệm AR ra sao?",
+  "Kể tôi nghe câu chuyện Phố Hàng Trống.",
 ]
+
+interface SpeechRecognitionResultLike {
+  isFinal: boolean
+  0: { transcript: string }
+}
+interface SpeechRecognitionEventLike {
+  resultIndex: number
+  results: ArrayLike<SpeechRecognitionResultLike>
+}
+interface SpeechRecognitionLike {
+  lang: string
+  continuous: boolean
+  interimResults: boolean
+  onstart: (() => void) | null
+  onend: (() => void) | null
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null
+  onerror: ((event: { error: string }) => void) | null
+  start: () => void
+  stop: () => void
+  abort: () => void
+}
+type SpeechRecognitionConstructor = new () => SpeechRecognitionLike
+
+function getSpeechRecognitionConstructor(): SpeechRecognitionConstructor | null {
+  if (typeof window === "undefined") return null
+  const voiceWindow = window as typeof window & {
+    SpeechRecognition?: SpeechRecognitionConstructor
+    webkitSpeechRecognition?: SpeechRecognitionConstructor
+  }
+  return (
+    voiceWindow.SpeechRecognition ?? voiceWindow.webkitSpeechRecognition ?? null
+  )
+}
 
 export default function Chatbox() {
   const [isOpen, setIsOpen] = useState(false)
-
-  const [messages, setMessages] = useState<Message[]>([])
-
+  const [messages, setMessages] = useState<ChatMessage[]>(() =>
+    typeof window === "undefined" ? [] : loadChatHistory(window.localStorage),
+  )
   const [inputValue, setInputValue] = useState("")
-
   const [isTyping, setIsTyping] = useState(false)
-
+  const [isListening, setIsListening] = useState(false)
+  const [isSpeaking, setIsSpeaking] = useState(false)
+  const [voiceNotice, setVoiceNotice] = useState("")
   const messagesEndRef = useRef<HTMLDivElement>(null)
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null)
+  const conversationGenerationRef = useRef(0)
+  const supportsVoiceInput = Boolean(getSpeechRecognitionConstructor())
+  const supportsVoiceOutput =
+    typeof window !== "undefined" && "speechSynthesis" in window
 
   useEffect(() => {
-    scrollToBottom()
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages, isTyping])
 
-  const handleSend = async (text: string) => {
-    if (!text.trim() || isTyping) return
+  useEffect(() => {
+    if (typeof window !== "undefined")
+      saveChatHistory(window.localStorage, messages)
+  }, [messages])
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      sender: "user",
-      text,
+  useEffect(() => {
+    return () => {
+      recognitionRef.current?.abort()
+      window.speechSynthesis?.cancel()
     }
+  }, [])
 
-    setMessages((prev) => [...prev, userMessage])
+  const stopSpeaking = useCallback(() => {
+    if (!supportsVoiceOutput) return
+    window.speechSynthesis.cancel()
+    setIsSpeaking(false)
+  }, [supportsVoiceOutput])
 
-    setInputValue("")
+  const speakReply = useCallback(
+    (reply: string) => {
+      if (!supportsVoiceOutput) return
+      window.speechSynthesis.cancel()
+      const utterance = new SpeechSynthesisUtterance(
+        stripMarkdownForSpeech(reply),
+      )
+      utterance.lang = "vi-VN"
+      utterance.rate = 0.96
+      const voice = window.speechSynthesis
+        .getVoices()
+        .find((item) => item.lang.toLowerCase().startsWith("vi"))
+      if (voice) utterance.voice = voice
+      utterance.onstart = () => setIsSpeaking(true)
+      utterance.onend = () => setIsSpeaking(false)
+      utterance.onerror = () => setIsSpeaking(false)
+      window.speechSynthesis.speak(utterance)
+    },
+    [supportsVoiceOutput],
+  )
 
-    setIsTyping(true)
+  const handleSend = useCallback(
+    async (text: string) => {
+      const cleanedText = text.trim()
+      if (!cleanedText || isTyping) return
+      const conversationGeneration = conversationGenerationRef.current
+      const userMessage = createChatMessage("user", cleanedText)
+      setMessages((previous) => [...previous, userMessage].slice(-30))
+      setInputValue("")
+      setVoiceNotice("")
+      setIsTyping(true)
+      recognitionRef.current?.stop()
 
-    try {
-      const history = [...messages, userMessage].map(({ sender, text }) => ({
-        sender,
-        text,
-      }))
-
-      const { data, error } = await supabase.functions.invoke("heritage-chat", {
-        body: { messages: history },
-      })
-
-      let reply = data?.reply as string | undefined
-
-      if (!reply) {
-        let msg = data?.error as string | undefined
-
-        if (!msg && error && "context" in error) {
-          try {
-            msg = (await (error as { context: Response }).context.json()).error
-          } catch {
-            /* ignore */
+      try {
+        const scopedPrompt = buildScopedChatPrompt(messages, userMessage.text)
+        const { data, error } = await supabase.functions.invoke(
+          "heritage-chat",
+          {
+            body: {
+              messages: [{ sender: "user", text: scopedPrompt }],
+            },
+          },
+        )
+        let reply = data?.reply as string | undefined
+        if (!reply) {
+          let message = data?.error as string | undefined
+          if (!message && error && "context" in error) {
+            try {
+              message = (await (error as { context: Response }).context.json())
+                .error
+            } catch {
+              // Use the friendly fallback below when the response is not JSON.
+            }
           }
+          reply = message || "Trợ lý tạm thời không phản hồi. Vui lòng thử lại."
         }
-
-        reply = msg || "Trợ lý tạm thời không phản hồi. Vui lòng thử lại."
+        const assistantMessage = createChatMessage(
+          "assistant",
+          reply,
+          Date.now() + 1,
+        )
+        if (conversationGenerationRef.current !== conversationGeneration) return
+        setMessages((previous) => [...previous, assistantMessage].slice(-30))
+        speakReply(reply)
+      } catch {
+        if (conversationGenerationRef.current !== conversationGeneration) return
+        const fallback = "Không kết nối được trợ lý. Vui lòng thử lại."
+        setMessages((previous) => [
+          ...previous,
+          createChatMessage("assistant", fallback, Date.now() + 1),
+        ])
+        speakReply(fallback)
+      } finally {
+        if (conversationGenerationRef.current === conversationGeneration) {
+          setIsTyping(false)
+        }
       }
+    },
+    [isTyping, messages, speakReply],
+  )
 
-      setMessages((prev) => [
-        ...prev,
-        { id: (Date.now() + 1).toString(), sender: "assistant", text: reply! },
-      ])
-    } catch {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          sender: "assistant",
-          text: "Không kết nối được trợ lý. Vui lòng thử lại.",
-        },
-      ])
-    } finally {
-      setIsTyping(false)
+  const toggleListening = () => {
+    if (isListening) {
+      recognitionRef.current?.stop()
+      return
     }
+    const Recognition = getSpeechRecognitionConstructor()
+    if (!Recognition) {
+      setVoiceNotice("Trình duyệt này chưa hỗ trợ nhập câu hỏi bằng giọng nói.")
+      return
+    }
+    stopSpeaking()
+    const recognition = new Recognition()
+    recognition.lang = "vi-VN"
+    recognition.continuous = false
+    recognition.interimResults = true
+    recognition.onstart = () => {
+      setIsListening(true)
+      setVoiceNotice("Đang nghe… Hãy nói câu hỏi của bạn.")
+    }
+    recognition.onend = () => setIsListening(false)
+    recognition.onerror = ({ error }) => {
+      setIsListening(false)
+      if (error !== "aborted") {
+        setVoiceNotice(
+          error === "not-allowed"
+            ? "Bạn cần cho phép dùng microphone để hỏi bằng giọng nói."
+            : "Chưa nghe rõ. Bạn vui lòng thử lại.",
+        )
+      }
+    }
+    recognition.onresult = (event) => {
+      let interimText = ""
+      let finalText = ""
+      for (
+        let index = event.resultIndex;
+        index < event.results.length;
+        index += 1
+      ) {
+        const result = event.results[index]
+        if (result.isFinal) finalText += result[0].transcript
+        else interimText += result[0].transcript
+      }
+      setInputValue(finalText || interimText)
+      if (finalText.trim()) void handleSend(finalText)
+    }
+    recognitionRef.current = recognition
+    recognition.start()
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault()
+  const clearConversation = () => {
+    conversationGenerationRef.current += 1
+    recognitionRef.current?.abort()
+    stopSpeaking()
+    setMessages([])
+    setInputValue("")
+    setIsListening(false)
+    setIsTyping(false)
+    setVoiceNotice("Đã xóa lịch sử trò chuyện trên thiết bị này.")
+  }
 
-      handleSend(inputValue)
-    }
+  const closeChat = () => {
+    conversationGenerationRef.current += 1
+    recognitionRef.current?.abort()
+    stopSpeaking()
+    setIsListening(false)
+    setIsTyping(false)
+    setIsOpen(false)
   }
 
   return (
@@ -120,394 +251,158 @@ export default function Chatbox() {
         style={{ display: isOpen ? "none" : "flex" }}
         aria-label="Mở Trợ lý Kiến Tích AI"
       >
-        <span className="chat-trigger-icon">
-          <Icon name="sparkle" size={22} />
+        <span className="chat-trigger-icon chat-mascot-frame">
+          <img src={MASCOT_IMAGE} alt="" />
         </span>
         <span className="chat-trigger-text">Hỏi Trợ lý AI</span>
       </button>
 
       {isOpen && (
-        <div
+        <section
           className="chat-panel-container"
-          style={{
-            position: "fixed",
-
-            bottom: "20px",
-
-            right: "20px",
-
-            zIndex: 1000,
-
-            width: "calc(100vw - 40px)",
-
-            maxWidth: "400px",
-
-            height: "600px",
-
-            maxHeight: "calc(100vh - 40px)",
-
-            background: "#FFF",
-
-            borderRadius: "16px",
-
-            boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
-
-            display: "flex",
-
-            flexDirection: "column",
-
-            overflow: "hidden",
-
-            fontFamily: '"Alegreya Sans", sans-serif',
-          }}
+          aria-label="Trợ lý Kiến Tích Việt"
         >
-          {/* Header */}
-          <div
-            style={{
-              background: "#8F0019",
-
-              color: "#FFEBD1",
-
-              padding: "20px",
-
-              display: "flex",
-
-              alignItems: "center",
-
-              justifyContent: "space-between",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <Icon name="sparkle" size={24} />
-              <h3
-                style={{
-                  margin: 0,
-                  fontFamily: '"Vollkorn", serif',
-                  fontSize: "20px",
-                }}
-              >
-                Trợ lý Kiến Tích Việt
-              </h3>
+          <header className="chat-panel-header">
+            <div className="chat-panel-title">
+              <span className="chat-mascot-frame chat-mascot-header">
+                <img src={MASCOT_IMAGE} alt="Linh vật Kiến Tích Việt" />
+              </span>
+              <div>
+                <h3>Trợ lý Kiến Tích Việt</h3>
+                <small>Hỏi bằng chữ hoặc giọng nói</small>
+              </div>
             </div>
-            <button
-              onClick={() => setIsOpen(false)}
-              style={{
-                background: "transparent",
-
-                border: "none",
-
-                color: "#FFEBD1",
-
-                cursor: "pointer",
-
-                padding: "4px",
-
-                display: "flex",
-
-                alignItems: "center",
-
-                justifyContent: "center",
-              }}
-              aria-label="Đóng chat"
-            >
-              <Icon name="close" size={24} />
-            </button>
-          </div>
-
-          {/* Messages */}
-          <div
-            style={{
-              flex: 1,
-
-              padding: "20px",
-
-              overflowY: "auto",
-
-              display: "flex",
-
-              flexDirection: "column",
-
-              gap: "16px",
-
-              background: "#f9f9f9",
-            }}
-          >
-            {messages.length === 0 ? (
-              <div
-                style={{
-                  textAlign: "center",
-                  marginTop: "40px",
-                  color: "#666",
-                }}
-              >
-                <div style={{ opacity: 0.3, marginBottom: "20px" }}>
-                  <Icon name="sparkle" size={48} />
-                </div>
-                <p style={{ marginBottom: "20px" }}>
-                  Xin chào! Tôi có thể giúp gì cho bạn hôm nay?
-                </p>
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "8px",
-                  }}
+            <div className="chat-header-actions">
+              {messages.length > 0 && (
+                <button
+                  onClick={clearConversation}
+                  aria-label="Xóa lịch sử trò chuyện"
                 >
-                  {STARTER_QUESTIONS.map((q, i) => (
+                  <Icon name="trash" size={19} />
+                </button>
+              )}
+              <button onClick={closeChat} aria-label="Đóng chat">
+                <Icon name="close" size={22} />
+              </button>
+            </div>
+          </header>
+
+          <div className="chat-messages" aria-live="polite">
+            {messages.length === 0 ? (
+              <div className="chat-welcome">
+                <span className="chat-mascot-frame chat-mascot-welcome">
+                  <img src={MASCOT_IMAGE} alt="" />
+                </span>
+                <h4>Xin chào! Tôi là trợ lý di sản.</h4>
+                <p>
+                  Tôi có thể kể hai câu chuyện Tháp Rùa và Phố Hàng Trống, hướng
+                  dẫn lắp ghép, NFC và trải nghiệm AR.
+                </p>
+                <div className="chat-starter-list">
+                  {STARTER_QUESTIONS.map((question) => (
                     <button
-                      key={i}
-                      onClick={() => handleSend(q)}
-                      style={{
-                        padding: "10px 16px",
-
-                        background: "#FFEBD1",
-
-                        color: "#8F0019",
-
-                        border: "1px solid rgba(143, 0, 25, 0.1)",
-
-                        borderRadius: "20px",
-
-                        fontSize: "14px",
-
-                        cursor: "pointer",
-
-                        textAlign: "left",
-
-                        fontFamily: '"Alegreya Sans", sans-serif',
-                      }}
+                      key={question}
+                      onClick={() => void handleSend(question)}
                     >
-                      {q}
+                      {question}
                     </button>
                   ))}
                 </div>
               </div>
             ) : (
-              <>
-                {messages.map((m) => (
+              messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`chat-message-row chat-message-${message.sender}`}
+                >
+                  {message.sender === "assistant" && (
+                    <span className="chat-mascot-frame chat-message-avatar">
+                      <img src={MASCOT_IMAGE} alt="" />
+                    </span>
+                  )}
                   <div
-                    key={m.id}
-                    className={m.sender === "assistant" ? "markdown-body" : ""}
-                    style={{
-                      alignSelf:
-                        m.sender === "user" ? "flex-end" : "flex-start",
-
-                      maxWidth: "85%",
-
-                      background: m.sender === "user" ? "#8F0019" : "#fff",
-
-                      color: m.sender === "user" ? "#FFEBD1" : "#333",
-
-                      padding: "12px 16px",
-
-                      borderRadius: "12px",
-
-                      borderBottomRightRadius:
-                        m.sender === "user" ? "4px" : "12px",
-
-                      borderBottomLeftRadius:
-                        m.sender === "assistant" ? "4px" : "12px",
-
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-
-                      lineHeight: 1.5,
-
-                      whiteSpace: m.sender === "user" ? "pre-wrap" : "normal",
-
-                      overflowWrap: "break-word",
-                    }}
+                    className={`chat-message-bubble ${
+                      message.sender === "assistant" ? "markdown-body" : ""
+                    }`}
                   >
-                    {m.sender === "assistant" ? (
-                      <ReactMarkdown>{m.text}</ReactMarkdown>
+                    {message.sender === "assistant" ? (
+                      <ReactMarkdown>{message.text}</ReactMarkdown>
                     ) : (
-                      m.text
+                      message.text
                     )}
                   </div>
-                ))}
-                {isTyping && (
-                  <div
-                    style={{
-                      alignSelf: "flex-start",
-
-                      background: "#fff",
-
-                      padding: "12px 16px",
-
-                      borderRadius: "12px",
-
-                      borderBottomLeftRadius: "4px",
-
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-
-                      display: "flex",
-
-                      gap: "4px",
-
-                      alignItems: "center",
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: "8px",
-                        height: "8px",
-                        background: "#ccc",
-                        borderRadius: "50%",
-                        animation: "pulse 1.5s infinite",
-                      }}
-                    />
-                    <span
-                      style={{
-                        width: "8px",
-                        height: "8px",
-                        background: "#ccc",
-                        borderRadius: "50%",
-                        animation: "pulse 1.5s infinite 0.2s",
-                      }}
-                    />
-                    <span
-                      style={{
-                        width: "8px",
-                        height: "8px",
-                        background: "#ccc",
-                        borderRadius: "50%",
-                        animation: "pulse 1.5s infinite 0.4s",
-                      }}
-                    />
-                  </div>
-                )}
-                <div ref={messagesEndRef} />
-              </>
+                </div>
+              ))
             )}
+            {isTyping && (
+              <div className="chat-message-row chat-message-assistant">
+                <span className="chat-mascot-frame chat-message-avatar">
+                  <img src={MASCOT_IMAGE} alt="" />
+                </span>
+                <div className="chat-typing" aria-label="Trợ lý đang trả lời">
+                  <i />
+                  <i />
+                  <i />
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
           </div>
 
-          {/* Input */}
-          <div
-            style={{
-              padding: "16px",
+          {(voiceNotice || isSpeaking) && (
+            <div className="chat-voice-status" role="status">
+              <span>
+                {isSpeaking ? "Linh vật đang đọc câu trả lời…" : voiceNotice}
+              </span>
+              {isSpeaking && <button onClick={stopSpeaking}>Dừng đọc</button>}
+            </div>
+          )}
 
-              background: "#fff",
-
-              borderTop: "1px solid #eee",
-
-              display: "flex",
-
-              gap: "10px",
-
-              alignItems: "flex-end",
-            }}
-          >
+          <div className="chat-input-wrap">
+            <button
+              className={`chat-voice-button ${
+                isListening ? "is-listening" : ""
+              }`}
+              type="button"
+              onClick={toggleListening}
+              disabled={isTyping}
+              aria-label={isListening ? "Dừng nghe" : "Hỏi bằng giọng nói"}
+              title={
+                supportsVoiceInput
+                  ? "Hỏi bằng giọng nói"
+                  : "Voice chưa được hỗ trợ"
+              }
+            >
+              <Icon name={isListening ? "close" : "microphone"} size={21} />
+            </button>
             <textarea
               value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Nhập câu hỏi của bạn..."
-              style={{
-                flex: 1,
-
-                padding: "12px 16px",
-
-                border: "1px solid #ddd",
-
-                borderRadius: "24px",
-
-                resize: "none",
-
-                height: "48px",
-
-                maxHeight: "120px",
-
-                fontFamily: '"Alegreya Sans", sans-serif',
-
-                fontSize: "15px",
-
-                outline: "none",
-
-                lineHeight: "22px",
+              onChange={(event) => setInputValue(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.shiftKey) {
+                  event.preventDefault()
+                  void handleSend(inputValue)
+                }
               }}
+              placeholder={isListening ? "Đang nghe…" : "Nhập câu hỏi của bạn…"}
+              maxLength={2000}
               rows={1}
             />
             <button
-              onClick={() => handleSend(inputValue)}
+              className="chat-send-button"
+              onClick={() => void handleSend(inputValue)}
               disabled={!inputValue.trim() || isTyping}
-              style={{
-                width: "48px",
-
-                height: "48px",
-
-                borderRadius: "50%",
-
-                background:
-                  inputValue.trim() && !isTyping ? "#FFD18D" : "#f0f0f0",
-
-                color: inputValue.trim() && !isTyping ? "#8F0019" : "#ccc",
-
-                border: "none",
-
-                display: "flex",
-
-                alignItems: "center",
-
-                justifyContent: "center",
-
-                cursor:
-                  inputValue.trim() && !isTyping ? "pointer" : "not-allowed",
-
-                transition: "all 0.2s",
-
-                flexShrink: 0,
-              }}
               aria-label="Gửi tin nhắn"
             >
-              <Icon name="arrow" size={24} />
+              <Icon name="arrow" size={23} />
             </button>
           </div>
-        </div>
+          <small className="chat-voice-privacy">
+            Khi bật micro, trình duyệt có thể gửi âm thanh tới nhà cung cấp dịch
+            vụ nhận dạng giọng nói trực tuyến.
+          </small>
+        </section>
       )}
-
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 0.4; }
-          50% { opacity: 1; }
-        }
-        .markdown-body {
-          font-size: 15px;
-        }
-        .markdown-body p {
-          margin: 0 0 8px 0;
-        }
-        .markdown-body p:last-child {
-          margin-bottom: 0;
-        }
-        .markdown-body strong {
-          font-weight: 600;
-          color: #8F0019;
-        }
-        .markdown-body ul, .markdown-body ol {
-          margin: 0 0 8px 0;
-          padding-left: 20px;
-        }
-        .markdown-body ul:last-child, .markdown-body ol:last-child {
-          margin-bottom: 0;
-        }
-        .markdown-body li {
-          margin-bottom: 4px;
-        }
-        .markdown-body a {
-          color: #8F0019;
-          text-decoration: underline;
-        }
-        @media (max-width: 480px) {
-          .chat-panel-container {
-            bottom: 0 !important;
-            right: 0 !important;
-            width: 100vw !important;
-            height: 100vh !important;
-            max-width: 100% !important;
-            max-height: 100% !important;
-            border-radius: 0 !important;
-          }
-        }
-      `}</style>
     </>
   )
 }

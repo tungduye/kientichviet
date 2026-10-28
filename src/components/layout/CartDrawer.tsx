@@ -9,10 +9,15 @@ import { Link } from "react-router-dom"
 export default function CartDrawer() {
   const {
     cartOpen,
+
     setCartOpen,
+
     cartCount,
+
     cartItems,
+
     updateQuantity,
+
     removeFromCart,
   } = useCart()
 
@@ -29,6 +34,10 @@ export default function CartDrawer() {
 
     return total + numericPrice * item.quantity
   }, 0)
+
+  const hasContactItems = cartItems.some(
+    (item) => item.product.price === "Liên hệ",
+  )
 
   return (
     <div
@@ -92,8 +101,11 @@ export default function CartDrawer() {
                     <div
                       style={{
                         display: "flex",
+
                         alignItems: "center",
+
                         gap: "15px",
+
                         marginTop: "10px",
                       }}
                     >
@@ -101,10 +113,15 @@ export default function CartDrawer() {
                         className="quantity-controls"
                         style={{
                           display: "flex",
+
                           alignItems: "center",
+
                           gap: "15px",
+
                           border: "1px solid rgba(255, 235, 209, 0.2)",
+
                           padding: "4px 12px",
+
                           borderRadius: "4px",
                         }}
                       >
@@ -115,11 +132,16 @@ export default function CartDrawer() {
                           disabled={item.quantity <= 1}
                           style={{
                             opacity: item.quantity <= 1 ? 0.5 : 1,
+
                             cursor:
                               item.quantity <= 1 ? "not-allowed" : "pointer",
+
                             background: "none",
+
                             border: "none",
+
                             color: "inherit",
+
                             fontSize: "18px",
                           }}
                         >
@@ -132,9 +154,13 @@ export default function CartDrawer() {
                           }
                           style={{
                             background: "none",
+
                             border: "none",
+
                             color: "inherit",
+
                             fontSize: "18px",
+
                             cursor: "pointer",
                           }}
                         >
@@ -145,7 +171,9 @@ export default function CartDrawer() {
                         onClick={() => removeFromCart(item.product.id)}
                         style={{
                           color: "var(--color-primary)",
+
                           textDecoration: "underline",
+
                           fontSize: "12px",
                         }}
                       >
@@ -159,7 +187,11 @@ export default function CartDrawer() {
             </div>
             <div className="cart-summary">
               <span>Tạm tính</span>
-              <strong>{subtotal.toLocaleString("vi-VN")}₫</strong>
+              <strong>
+                {hasContactItems
+                  ? "Liên hệ xác nhận"
+                  : `${subtotal.toLocaleString("vi-VN")}₫`}
+              </strong>
             </div>
             <Link
               to="/cart"

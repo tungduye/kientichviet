@@ -17,6 +17,183 @@
   --ink-hero: #38000c;
 }
 
+/* ─── Product administration ───────────────────────────── */
+.admin-shell {
+  min-height: 100vh;
+  padding: 48px clamp(20px, 5vw, 80px) 80px;
+  color: #3a2520;
+  background: #f8f2e8;
+  font-family: "Be Vietnam Pro", sans-serif;
+}
+.admin-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 32px;
+  max-width: 1280px;
+  margin: 0 auto 36px;
+}
+.admin-header h1,
+.admin-login-card h1,
+.admin-state h1 {
+  margin: 4px 0 8px;
+  color: var(--red);
+  font: 600 clamp(32px, 4vw, 52px)/1.05 "Vollkorn", serif;
+}
+.admin-kicker {
+  margin: 0;
+  color: #9a6a2f;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.admin-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.admin-header-actions a,
+.admin-header-actions button,
+.admin-state button,
+.admin-login-card button,
+.admin-card-actions button {
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 1px solid var(--red);
+  border-radius: 999px;
+  color: #fff8ef;
+  background: var(--red);
+  font: 600 13px/1 "Be Vietnam Pro", sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+}
+.admin-header-actions a {
+  color: var(--red);
+  background: transparent;
+}
+.admin-product-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+.admin-product-card {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.8fr) minmax(220px, 1.2fr);
+  overflow: hidden;
+  border: 1px solid rgba(127, 0, 25, 0.13);
+  border-radius: 22px;
+  background: #fffaf2;
+  box-shadow: 0 14px 40px rgba(63, 28, 18, 0.08);
+}
+.admin-product-card.is-hidden { opacity: 0.7; }
+.admin-product-image {
+  min-height: 280px;
+  background: #eadfce;
+}
+.admin-product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.admin-product-image span {
+  display: grid;
+  height: 100%;
+  place-items: center;
+  color: #7b675e;
+}
+.admin-product-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+}
+.admin-product-fields h2 {
+  margin: 3px 0 0;
+  color: var(--red);
+  font: 600 25px/1.15 "Vollkorn", serif;
+}
+.admin-product-fields small { color: #8a746b; }
+.admin-product-fields label,
+.admin-login-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #5f4b43;
+  font-size: 12px;
+  font-weight: 700;
+}
+.admin-product-fields input[type="text"],
+.admin-product-fields input:not([type]),
+.admin-login-card input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 13px;
+  border: 1px solid rgba(127, 0, 25, 0.18);
+  border-radius: 10px;
+  background: #fff;
+  font: 500 14px/1.4 "Be Vietnam Pro", sans-serif;
+}
+.admin-file-field input { font-weight: 400; }
+.admin-file-field span {
+  color: #8a746b;
+  font-size: 10px;
+  font-weight: 400;
+}
+.admin-visibility-field {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 10px !important;
+}
+.admin-visibility-field input { width: 18px; height: 18px; accent-color: var(--red); }
+.admin-card-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.admin-card-actions p { margin: 0; color: #5d7256; font-size: 11px; }
+.admin-card-actions button:disabled,
+.admin-login-card button:disabled { opacity: 0.55; cursor: wait; }
+.admin-error {
+  max-width: 1280px;
+  margin: 0 auto 20px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  color: #7f0019;
+  background: #ffe2e0;
+}
+.admin-login-shell,
+.admin-state {
+  display: grid;
+  place-items: center;
+}
+.admin-login-card {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: min(430px, 100%);
+  padding: 36px;
+  border: 1px solid rgba(127, 0, 25, 0.14);
+  border-radius: 24px;
+  background: #fffaf2;
+  box-shadow: 0 20px 60px rgba(63, 28, 18, 0.12);
+}
+.admin-login-card > p { margin: 0; color: #79635a; }
+.admin-login-card .admin-error { margin: 0; }
+.admin-state { text-align: center; }
+.admin-state p { max-width: 600px; }
+
+@media (max-width: 980px) {
+  .admin-product-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .admin-shell { padding: 28px 14px 60px; }
+  .admin-header { flex-direction: column; }
+  .admin-header-actions { width: 100%; flex-wrap: wrap; }
+  .admin-product-card { grid-template-columns: 1fr; }
+  .admin-product-image { min-height: 220px; max-height: 320px; }
+  .admin-login-card { padding: 26px 20px; }
+}
+
 * {
   box-sizing: border-box;
 }
@@ -1388,6 +1565,48 @@ footer { background: var(--red-dark); color: var(--cream); padding: 80px clamp(2
 .modal-layer { inset: 0; position: fixed; z-index: 50; }
 .modal-backdrop, .cart-backdrop { background: rgba(40, 0, 8, 0.72); border: 0; cursor: default; inset: 0; position: absolute; width: 100%; }
 .product-modal { background: var(--cream-light); display: grid; grid-template-columns: 1fr 1fr; left: 50%; max-height: 88vh; max-width: 1080px; overflow: auto; position: absolute; top: 50%; transform: translate(-50%, -50%); width: calc(100% - 48px); }
+.modal-image img.variant-image-monochrome { filter: grayscale(1) sepia(0.18) contrast(0.95); }
+.variant-image-placeholder {
+  display: flex;
+  width: 100%;
+  min-height: 520px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+  color: var(--red);
+  background:
+    radial-gradient(circle at 50% 38%, rgba(255, 209, 141, 0.32), transparent 24%),
+    repeating-linear-gradient(45deg, rgba(143, 0, 25, 0.045) 0 12px, transparent 12px 24px),
+    #f7ead7;
+}
+.variant-image-placeholder strong { font: 600 28px/1.2 "Vollkorn", serif; }
+.variant-image-placeholder span { font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; }
+.product-variant-picker { margin: 24px 0 4px; }
+.variant-picker-heading { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.variant-picker-heading strong { color: var(--ink); font-size: 14px; }
+.variant-picker-heading span { color: var(--red); font-size: 12px; }
+.variant-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.variant-options button {
+  display: flex;
+  min-height: 86px;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 11px;
+  border: 1px solid rgba(45, 30, 25, 0.16);
+  border-radius: 7px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.55);
+  text-align: left;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+.variant-options button:hover { transform: translateY(-2px); border-color: rgba(143, 0, 25, 0.45); }
+.variant-options button.is-selected { border-color: var(--red); background: #fff3df; box-shadow: 0 0 0 2px rgba(143, 0, 25, 0.08); }
+.variant-options button span { display: flex; flex-direction: column; gap: 2px; }
+.variant-options button strong { font: 600 15px/1.2 "Vollkorn", serif; }
+.variant-options button small { font-size: 10px; line-height: 1.35; opacity: 0.72; }
+.variant-options button b { color: var(--red); font-size: 11px; }
+.variant-description { min-height: 38px; margin-top: 9px !important; color: #6c554b; font-size: 11px !important; line-height: 1.55; }
 .modal-close { align-items: center; background: var(--cream); border: 0; cursor: pointer; display: flex; height: 46px; justify-content: center; position: absolute; right: 0; top: 0; width: 46px; z-index: 2; }
 .modal-image { min-height: 620px; position: relative; }
 .modal-image img { filter: sepia(0.2); height: 100%; object-fit: cover; position: absolute; width: 100%; }
@@ -1507,6 +1726,11 @@ footer { background: var(--red-dark); color: var(--cream); padding: 80px clamp(2
   .product-modal { grid-template-columns: 1fr; max-width: 620px; }
   .modal-image { min-height: 330px; }
   .modal-image img { object-position: center 43%; }
+}
+@media (max-width: 580px) {
+  .variant-options { grid-template-columns: 1fr; }
+  .variant-options button { min-height: 68px; }
+  .variant-image-placeholder { min-height: 340px; }
 }
 
 @media (max-width: 560px) {
@@ -2010,6 +2234,208 @@ h2 { letter-spacing: -0.015em !important; }
     justify-content: center;
   }
   .chat-trigger-text { display: none; }
+}
+
+/* AI product guide */
+.chat-mascot-frame {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #fff;
+}
+.chat-mascot-frame img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 190%;
+  height: auto;
+  transform: translate(-50%, -36%);
+}
+.chat-trigger-icon {
+  width: 38px;
+  height: 38px;
+  border: 2px solid rgba(255, 209, 141, 0.7);
+}
+.chat-panel-container {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 1000;
+  display: flex;
+  width: calc(100vw - 40px);
+  max-width: 420px;
+  height: min(660px, calc(100vh - 40px));
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgba(143, 0, 25, 0.12);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 18px 52px rgba(54, 20, 14, 0.24);
+  font-family: "Be Vietnam Pro", sans-serif;
+}
+.chat-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  color: var(--cream-light);
+  background: linear-gradient(135deg, #8f0019, #610010);
+}
+.chat-panel-title { display: flex; align-items: center; gap: 11px; min-width: 0; }
+.chat-panel-title h3 { margin: 0; font: 600 18px/1.2 "Vollkorn", serif; }
+.chat-panel-title small { display: block; margin-top: 3px; opacity: 0.78; font-size: 11px; }
+.chat-mascot-header { width: 44px; height: 44px; border: 2px solid rgba(255, 209, 141, 0.7); }
+.chat-header-actions { display: flex; gap: 4px; }
+.chat-header-actions button {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 50%;
+  color: inherit;
+  transition: background 0.2s ease;
+}
+.chat-header-actions button:hover { background: rgba(255, 255, 255, 0.13); }
+.chat-messages {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+  padding: 18px;
+  background: #fbf7f0;
+}
+.chat-welcome { margin: auto 0; text-align: center; color: #4a352e; }
+.chat-mascot-welcome {
+  width: 92px;
+  height: 92px;
+  margin-bottom: 12px;
+  border: 3px solid rgba(143, 0, 25, 0.12);
+  box-shadow: 0 8px 24px rgba(143, 0, 25, 0.1);
+}
+.chat-mascot-welcome img { width: 165%; transform: translate(-50%, -35%); }
+.chat-welcome h4 { margin: 0 0 7px; font: 600 20px/1.3 "Vollkorn", serif; color: var(--red); }
+.chat-welcome > p { max-width: 330px; margin: 0 auto 16px; font-size: 13px; line-height: 1.6; }
+.chat-voice-privacy {
+  display: block;
+  margin: 6px 24px 13px;
+  color: #7b675e;
+  font-size: 9px;
+  line-height: 1.45;
+  text-align: left;
+}
+.chat-starter-list { display: flex; flex-direction: column; gap: 7px; }
+.chat-starter-list button {
+  padding: 9px 13px;
+  border: 1px solid rgba(143, 0, 25, 0.14);
+  border-radius: 20px;
+  color: var(--red);
+  background: #ffebd1;
+  font: 500 12px/1.35 "Be Vietnam Pro", sans-serif;
+  text-align: left;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+.chat-starter-list button:hover { border-color: var(--red); transform: translateX(2px); }
+.chat-message-row { display: flex; align-items: flex-end; gap: 7px; }
+.chat-message-user { justify-content: flex-end; }
+.chat-message-avatar { width: 30px; height: 30px; border: 1px solid rgba(143, 0, 25, 0.12); }
+.chat-message-bubble {
+  max-width: 82%;
+  padding: 11px 14px;
+  border-radius: 14px;
+  box-shadow: 0 2px 9px rgba(54, 20, 14, 0.06);
+  font-size: 13px;
+  line-height: 1.55;
+  overflow-wrap: break-word;
+}
+.chat-message-user .chat-message-bubble {
+  border-bottom-right-radius: 4px;
+  color: #ffebd1;
+  background: var(--red);
+  white-space: pre-wrap;
+}
+.chat-message-assistant .chat-message-bubble {
+  border: 1px solid rgba(143, 0, 25, 0.08);
+  border-bottom-left-radius: 4px;
+  color: #3d302b;
+  background: #fff;
+}
+.chat-typing {
+  display: flex;
+  gap: 4px;
+  padding: 12px 15px;
+  border-radius: 14px 14px 14px 4px;
+  background: #fff;
+}
+.chat-typing i { width: 7px; height: 7px; border-radius: 50%; background: #bda99d; animation: pulse 1.2s infinite; }
+.chat-typing i:nth-child(2) { animation-delay: 0.18s; }
+.chat-typing i:nth-child(3) { animation-delay: 0.36s; }
+.chat-voice-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 15px;
+  color: #6b4538;
+  background: #fff4e4;
+  border-top: 1px solid rgba(143, 0, 25, 0.08);
+  font-size: 11px;
+}
+.chat-voice-status button { flex: 0 0 auto; color: var(--red); font-weight: 700; text-decoration: underline; }
+.chat-input-wrap {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid rgba(143, 0, 25, 0.1);
+  background: #fff;
+}
+.chat-input-wrap textarea {
+  min-width: 0;
+  height: 44px;
+  max-height: 110px;
+  flex: 1;
+  resize: none;
+  padding: 10px 14px;
+  border: 1px solid #ded3cc;
+  border-radius: 22px;
+  outline: none;
+  font: 13px/22px "Be Vietnam Pro", sans-serif;
+}
+.chat-input-wrap textarea:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(143, 0, 25, 0.08); }
+.chat-voice-button,
+.chat-send-button {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+}
+.chat-voice-button { color: var(--red); background: #fff0dd; }
+.chat-voice-button.is-listening { color: #fff; background: var(--red); animation: chat-listening 1.2s infinite; }
+.chat-send-button { color: var(--red); background: var(--gold); }
+.chat-send-button:disabled, .chat-voice-button:disabled { cursor: not-allowed; opacity: 0.4; }
+.markdown-body p { margin: 0 0 8px; }
+.markdown-body p:last-child { margin-bottom: 0; }
+.markdown-body strong { color: var(--red); font-weight: 700; }
+.markdown-body ul, .markdown-body ol { margin: 0 0 8px; padding-left: 20px; }
+.markdown-body li { margin-bottom: 3px; }
+@keyframes pulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
+@keyframes chat-listening { 0%, 100% { box-shadow: 0 0 0 0 rgba(143, 0, 25, 0.28); } 50% { box-shadow: 0 0 0 8px rgba(143, 0, 25, 0); } }
+@media (max-width: 580px) {
+  .chat-panel-container {
+    inset: 0;
+    width: 100vw;
+    max-width: none;
+    height: 100dvh;
+    border: 0;
+    border-radius: 0;
+  }
+  .chat-messages { padding: 14px; }
 }
 
 /* ===== Motion system ===== */
