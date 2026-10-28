@@ -6,6 +6,7 @@ import { useCatalog } from "../context/CatalogContext"
 
 import { Link } from "react-router-dom"
 import { useSiteContent } from "../context/SiteContentContext"
+import { isUpcomingProduct } from "../data/products"
 
 const heritageImage = "/images/thap-rua.jpg"
 
@@ -238,7 +239,7 @@ export default function Home() {
           {products.map((product) => (
             <article
               className={`product-card reveal ${
-                product.accent === "Sắp ra mắt" ? "is-upcoming" : ""
+                isUpcomingProduct(product) ? "is-upcoming" : ""
               }`}
               key={product.id}
               data-slug={product.slug}
@@ -298,7 +299,7 @@ export default function Home() {
                 </div>
                 <div className="product-price-row">
                   <div className="price-block">
-                    {product.accent === "Sắp ra mắt" ? (
+                    {isUpcomingProduct(product) ? (
                       <>
                         <span className="price-label">Dự kiến</span>
                         <strong className="product-price">
@@ -314,7 +315,7 @@ export default function Home() {
                     className="product-inline-cta"
                     aria-label={`Xem chi tiết ${product.name}`}
                   >
-                    {product.accent === "Sắp ra mắt"
+                    {isUpcomingProduct(product)
                       ? "Xem chi tiết"
                       : "Khám phá"}
                   </Link>

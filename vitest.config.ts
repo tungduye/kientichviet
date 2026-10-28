@@ -7,6 +7,7 @@ export default defineConfig({
       include: [
         "src/features/**/*.ts",
         "supabase/functions/heritage-chat/requestGuards.ts",
+        "supabase/functions/upload-product-image/galleryValidation.ts",
         "supabase/functions/upload-product-image/imageValidation.ts",
       ],
       exclude: ["**/*.test.ts"],

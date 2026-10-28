@@ -25,6 +25,10 @@ export interface Product {
   audioAuthor?: string
 }
 
+export const UPCOMING_PRODUCT_ACCENT = "COMING SOON"
+
+const PRODUCT_DISPLAY_ORDER = ["p3", "p1", "p2"]
+
 export const products: Product[] = [
   {
     id: "p1",
@@ -34,8 +38,8 @@ export const products: Product[] = [
     eyebrow: "Hà Nội · Hồ Gươm",
     price: "820.000 ₫",
     image: "/images/thap-rua.jpg",
-    number: "01",
-    accent: "Bán chạy",
+    number: "02",
+    accent: "Mới",
     description:
       "Mô hình lắp ghép gỗ 3D tái hiện Tháp Rùa, biểu tượng quen thuộc giữa lòng Hồ Gươm.",
     modelUrl: "/models/Thap-rua-model.glb",
@@ -60,8 +64,8 @@ export const products: Product[] = [
     eyebrow: "Hà Nội · Di sản Thăng Long",
     price: "890.000 ₫",
     image: "/images/chua-mot-cot.jpg",
-    number: "02",
-    accent: "Sắp ra mắt",
+    number: "03",
+    accent: UPCOMING_PRODUCT_ACCENT,
     description:
       "Mô hình lắp ghép gỗ 3D lấy cảm hứng từ kiến trúc độc đáo mang hình tượng đóa sen của Chùa Một Cột.",
     audioUrl:
@@ -86,8 +90,8 @@ export const products: Product[] = [
     eyebrow: "Hà Nội · Phố cổ Hà Nội",
     price: "790.000 ₫",
     image: "/images/pho-hang-trong.jpg",
-    number: "03",
-    accent: "Mới",
+    number: "01",
+    accent: "Bán chạy",
     description:
       "Mô hình lắp ghép gỗ 3D lấy cảm hứng từ kiến trúc phố Hàng Trống, tái hiện một góc phố nghề mang dấu ấn tranh dân gian Hà Nội xưa.",
     modelUrl: "/models/Hang-Trong-Model.glb",
@@ -106,7 +110,15 @@ export const products: Product[] = [
       weight: "450g",
     },
   },
-]
+].sort(
+  (left, right) =>
+    PRODUCT_DISPLAY_ORDER.indexOf(left.id) -
+    PRODUCT_DISPLAY_ORDER.indexOf(right.id),
+)
+
+export function isUpcomingProduct(product: Pick<Product, "accent">): boolean {
+  return product.accent === UPCOMING_PRODUCT_ACCENT
+}
 
 export function findProduct(slugOrId?: string): Product | undefined {
   if (!slugOrId) return undefined

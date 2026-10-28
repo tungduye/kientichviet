@@ -54,7 +54,7 @@ export default function Footer() {
           <div>
             <strong>Liên hệ</strong>
             <span>Hotline: {text("footer.phone")}</span>
-            <span>Email: {text("footer.email")}</span>
+            <span className="footer-email">Email: {text("footer.email")}</span>
             <span>Địa chỉ: {text("footer.address")}</span>
           </div>
         </div>

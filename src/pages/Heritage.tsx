@@ -21,6 +21,7 @@ import {
 import ModelViewer3D from "../components/ModelViewer3D"
 
 import HeritageHub from "../components/HeritageHub"
+import { isUpcomingProduct } from "../data/products"
 
 export default function Heritage() {
   const { products, findProduct } = useCatalog()
@@ -1040,7 +1041,7 @@ export default function Heritage() {
                           textTransform: "uppercase",
                         }}
                       >
-                        {product.accent === "Sắp ra mắt"
+                        {isUpcomingProduct(product)
                           ? "Giá dự kiến"
                           : "Giá phát hành"}
                       </span>

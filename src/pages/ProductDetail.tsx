@@ -9,6 +9,7 @@ import { useCart } from "../context/CartContext"
 import { useState, useRef, useEffect } from "react"
 
 import { buildVariantProduct } from "../features/products/productVariants"
+import { isUpcomingProduct } from "../data/products"
 
 export default function ProductDetail() {
   const { products, findProduct, getVariants } = useCatalog()
@@ -19,6 +20,7 @@ export default function ProductDetail() {
   const [playing, setPlaying] = useState(false)
 
   const [selectedVariantId, setSelectedVariantId] = useState("basic")
+  const [galleryIndex, setGalleryIndex] = useState(0)
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
@@ -33,6 +35,22 @@ export default function ProductDetail() {
     product && selectedVariant
       ? buildVariantProduct(product, selectedVariant)
       : product
+  const galleryImages = selectedVariant
+    ? selectedVariant.imageUrls.length
+      ? selectedVariant.imageUrls
+      : selectedVariant.imageMode === "placeholder"
+        ? []
+        : product?.imageUrls.length
+          ? product.imageUrls
+          : [selectedProduct?.image || product?.image].filter(
+              Boolean,
+            ) as string[]
+    : product
+      ? product.imageUrls.length
+        ? product.imageUrls
+        : [product.image]
+      : []
+  const activeGalleryImage = galleryImages[galleryIndex] ?? galleryImages[0]
 
   useEffect(() => {
     setPlaying(false)
@@ -45,6 +63,10 @@ export default function ProductDetail() {
       audioRef.current.currentTime = 0
     }
   }, [slug])
+
+  useEffect(() => {
+    setGalleryIndex(0)
+  }, [slug, selectedVariantId])
 
   useEffect(() => {
     return () => {
@@ -114,7 +136,7 @@ export default function ProductDetail() {
         >
           <div className="modal-image reveal" style={{ position: "relative" }}>
             {selectedVariant?.imageMode === "placeholder" &&
-            !selectedVariant.imageUrl ? (
+            !activeGalleryImage ? (
               <div
                 className="variant-image-placeholder"
                 role="img"
@@ -132,11 +154,58 @@ export default function ProductDetail() {
                     ? "variant-image-monochrome"
                     : ""
                 }`}
-                src={selectedProduct?.image || product.image}
+                src={
+                  activeGalleryImage || selectedProduct?.image || product.image
+                }
                 alt={`${product.name}${
                   selectedVariant ? ` phiên bản ${selectedVariant.name}` : ""
                 }`}
               />
+            )}
+            {galleryImages.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  className="product-gallery-arrow is-previous"
+                  onClick={() =>
+                    setGalleryIndex(
+                      (current) =>
+                        (current - 1 + galleryImages.length) %
+                        galleryImages.length,
+                    )
+                  }
+                  aria-label="Xem ảnh trước"
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  className="product-gallery-arrow is-next"
+                  onClick={() =>
+                    setGalleryIndex(
+                      (current) => (current + 1) % galleryImages.length,
+                    )
+                  }
+                  aria-label="Xem ảnh tiếp theo"
+                >
+                  ›
+                </button>
+                <div
+                  className="product-gallery-dots"
+                  aria-label="Chọn ảnh sản phẩm"
+                >
+                  {galleryImages.map((_, index) => (
+                    <button
+                      type="button"
+                      className={index === galleryIndex ? "is-active" : ""}
+                      onClick={() => setGalleryIndex(index)}
+                      aria-label={`Xem ảnh ${index + 1}`}
+                      aria-current={index === galleryIndex ? "true" : undefined}
+                      key={index}
+                    />
+                  ))}
+                </div>
+              </>
             )}
             <span>Mô hình gỗ · Tỉ lệ 1:120</span>
           </div>
@@ -218,21 +287,31 @@ export default function ProductDetail() {
               </p>
             </div>
             <div className="modal-buy" style={{ marginTop: "35px" }}>
-              <strong>{selectedProduct?.price}</strong>
+              <strong>
+                {isUpcomingProduct(product)
+                  ? "Sắp ra mắt"
+                  : selectedProduct?.price}
+              </strong>
               <button
+                type="button"
+                disabled={isUpcomingProduct(product)}
                 onClick={() => selectedProduct && addToCart(selectedProduct)}
               >
                 <span>
-                  {selectedProduct?.price === "Liên hệ"
-                    ? "Yêu cầu tư vấn"
-                    : "Thêm vào giỏ"}
+                  {isUpcomingProduct(product)
+                    ? "Chưa mở bán"
+                    : selectedProduct?.price === "Liên hệ"
+                      ? "Yêu cầu tư vấn"
+                      : "Thêm vào giỏ"}
                 </span>
                 <Icon name="bag" />
               </button>
             </div>
-            {product.modelUrl && <Link className="product-ar-link" to={`/ar/${product.id}`}>
-              <Icon name="phone" /> Mở camera trải nghiệm Web AR
-            </Link>}
+            {product.modelUrl && (
+              <Link className="product-ar-link" to={`/ar/${product.id}`}>
+                <Icon name="phone" /> Mở camera trải nghiệm Web AR
+              </Link>
+            )}
           </div>
         </div>
       </div>
@@ -440,7 +519,12 @@ export default function ProductDetail() {
             .slice(0, 3)
 
             .map((relatedProduct) => (
-              <article className="product-card reveal" key={relatedProduct.id}>
+              <article
+                className={`product-card reveal ${
+                  isUpcomingProduct(relatedProduct) ? "is-upcoming" : ""
+                }`}
+                key={relatedProduct.id}
+              >
                 <Link
                   to={`/products/${relatedProduct.slug}`}
                   className="product-image"

@@ -7,17 +7,21 @@ export interface CatalogSetting {
   variantId: string | null
   price: string
   imageUrl: string | null
+  imageUrls: string[]
   isVisible: boolean
   sortOrder: number
+  revision?: number
 }
 
 export interface CatalogProduct extends Product {
   isVisible: boolean
   sortOrder: number
+  imageUrls: string[]
 }
 
 export interface CatalogVariant extends ProductVariant {
   imageUrl?: string
+  imageUrls: string[]
   isVisible: boolean
   sortOrder: number
 }
@@ -30,6 +34,34 @@ export interface ImageFileMetadata {
 
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"])
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024
+export const MAX_PRODUCT_GALLERY_IMAGES = 8
+
+export function resolveCatalogGallery(
+  setting?: Pick<CatalogSetting, "imageUrl" | "imageUrls">,
+  fallbackImage?: string,
+): string[] {
+  const configuredImages = (setting?.imageUrls ?? []).filter(Boolean)
+  const images = configuredImages.length
+    ? configuredImages
+    : setting?.imageUrl
+      ? [setting.imageUrl]
+      : fallbackImage
+        ? [fallbackImage]
+        : []
+
+  return [...new Set(images)].slice(0, MAX_PRODUCT_GALLERY_IMAGES)
+}
+
+export function moveGalleryImageToFront<T>(
+  images: T[],
+  selectedIndex: number,
+): T[] {
+  if (selectedIndex <= 0 || selectedIndex >= images.length) return [...images]
+  return [
+    images[selectedIndex],
+    ...images.filter((_, index) => index !== selectedIndex),
+  ]
+}
 
 export function applyCatalogSettings(
   baseProducts: Product[],
@@ -45,11 +77,13 @@ export function applyCatalogSettings(
   return baseProducts
     .map((product, index) => {
       const setting = settingsByKey.get(product.id)
+      const imageUrls = resolveCatalogGallery(setting, product.image)
 
       return {
         ...product,
         price: setting?.price || product.price,
-        image: setting?.imageUrl || product.image,
+        image: imageUrls[0] || product.image,
+        imageUrls,
         isVisible: setting?.isVisible ?? false,
         sortOrder: setting?.sortOrder ?? index + 1,
       }
@@ -75,11 +109,13 @@ export function applyVariantSettings(
   return variants
     .map((variant, index) => {
       const setting = settingsByVariant.get(variant.id)
+      const imageUrls = resolveCatalogGallery(setting, variant.imageUrl)
 
       return {
         ...variant,
         price: setting?.price || variant.price,
-        imageUrl: setting?.imageUrl || undefined,
+        imageUrl: imageUrls[0],
+        imageUrls,
         isVisible: setting?.isVisible ?? false,
         sortOrder: setting?.sortOrder ?? index + 1,
       }

@@ -25,7 +25,7 @@ interface CatalogContextValue {
   settings: CatalogSetting[]
   loading: boolean
   error: string
-  refresh: () => Promise<void>
+  refresh: (showLoading?: boolean) => Promise<void>
   findProduct: (slugOrId?: string) => CatalogProduct | undefined
   getVariants: (product: Product, includeHidden?: boolean) => CatalogVariant[]
 }
@@ -38,8 +38,10 @@ function mapCatalogSetting(row: {
   variant_id: string | null
   price: string
   image_url: string | null
+  image_urls: string[]
   is_visible: boolean
   sort_order: number
+  revision: number
 }): CatalogSetting {
   return {
     productKey: row.product_key,
@@ -47,8 +49,10 @@ function mapCatalogSetting(row: {
     variantId: row.variant_id,
     price: row.price,
     imageUrl: row.image_url,
+    imageUrls: row.image_urls ?? [],
     isVisible: row.is_visible,
     sortOrder: row.sort_order,
+    revision: row.revision,
   }
 }
 
@@ -57,24 +61,26 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
 
-  const refresh = useCallback(async () => {
-    setLoading(true)
+  const refresh = useCallback(async (showLoading = true) => {
+    if (showLoading) setLoading(true)
 
     const { data, error: catalogError } = await supabase
       .from("product_catalog_settings")
       .select(
-        "product_key, product_id, variant_id, price, image_url, is_visible, sort_order",
+        "product_key, product_id, variant_id, price, image_url, image_urls, is_visible, sort_order, revision",
       )
       .order("sort_order")
 
     if (catalogError) {
       setError("Chưa tải được dữ liệu sản phẩm mới nhất.")
+      if (showLoading) setLoading(false)
+      if (!showLoading) throw catalogError
     } else {
       setSettings((data ?? []).map(mapCatalogSetting))
       setError("")
     }
 
-    setLoading(false)
+    if (showLoading) setLoading(false)
   }, [])
 
   useEffect(() => {

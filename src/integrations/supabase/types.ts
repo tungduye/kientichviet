@@ -88,30 +88,36 @@ export type Database = {
       product_catalog_settings: {
         Row: {
           image_url: string | null
+          image_urls: string[]
           is_visible: boolean
           price: string
           product_id: string
           product_key: string
+          revision: number
           sort_order: number
           updated_at: string
           variant_id: string | null
         }
         Insert: {
           image_url?: string | null
+          image_urls?: string[]
           is_visible?: boolean
           price: string
           product_id: string
           product_key: string
+          revision?: number
           sort_order?: number
           updated_at?: string
           variant_id?: string | null
         }
         Update: {
           image_url?: string | null
+          image_urls?: string[]
           is_visible?: boolean
           price?: string
           product_id?: string
           product_key?: string
+          revision?: number
           sort_order?: number
           updated_at?: string
           variant_id?: string | null

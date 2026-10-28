@@ -3,6 +3,8 @@ import type { User } from "@supabase/supabase-js"
 
 import { useCatalog } from "../context/CatalogContext"
 import {
+  MAX_PRODUCT_GALLERY_IMAGES,
+  moveGalleryImageToFront,
   validateProductImage,
   type CatalogVariant,
 } from "../features/catalog/catalog"
@@ -16,8 +18,10 @@ interface EditorItem {
   subtitle: string
   price: string
   imageUrl: string | null
+  imageUrls: string[]
   previewImageUrl: string
   isVisible: boolean
+  revision: number
   variant?: CatalogVariant
 }
 
@@ -30,46 +34,53 @@ function CatalogEditorCard({
 }) {
   const [price, setPrice] = useState(item.price)
   const [isVisible, setIsVisible] = useState(item.isVisible)
-  const [file, setFile] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState(item.previewImageUrl)
+  const [files, setFiles] = useState<File[]>([])
+  const [galleryUrls, setGalleryUrls] = useState(item.imageUrls)
+  const [pendingPreviewUrls, setPendingPreviewUrls] = useState<string[]>([])
+  const [newFilesFirst, setNewFilesFirst] = useState(false)
   const [status, setStatus] = useState("")
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     setPrice(item.price)
     setIsVisible(item.isVisible)
-    setPreviewUrl(item.previewImageUrl)
-    setFile(null)
+    setGalleryUrls(item.imageUrls)
+    setFiles([])
+    setNewFilesFirst(false)
   }, [item])
 
   useEffect(() => {
-    if (!file) return
+    const objectUrls = files.map((file) => URL.createObjectURL(file))
+    setPendingPreviewUrls(objectUrls)
+    return () => objectUrls.forEach((url) => URL.revokeObjectURL(url))
+  }, [files])
 
-    const objectUrl = URL.createObjectURL(file)
-    setPreviewUrl(objectUrl)
-
-    return () => URL.revokeObjectURL(objectUrl)
-  }, [file])
-
-  const handleFileChange = (selectedFile?: File) => {
-    if (!selectedFile) {
-      setFile(null)
-      setPreviewUrl(item.previewImageUrl)
-      setStatus("")
+  const handleFileChange = (selectedFiles: File[]) => {
+    if (!selectedFiles.length) return
+    const validationError = selectedFiles
+      .map(validateProductImage)
+      .find(Boolean)
+    if (validationError) {
+      setStatus(validationError)
       return
     }
-
-    const validationError = validateProductImage(selectedFile)
-    if (validationError) {
-      setFile(null)
-      setPreviewUrl(item.previewImageUrl)
-      setStatus(validationError)
+    if (
+      galleryUrls.length + files.length + selectedFiles.length >
+      MAX_PRODUCT_GALLERY_IMAGES
+    ) {
+      setStatus(
+        `Mỗi dòng sản phẩm chỉ lưu tối đa ${MAX_PRODUCT_GALLERY_IMAGES} ảnh.`,
+      )
       return
     }
 
     setStatus("")
-    setFile(selectedFile)
+    setFiles((current) => [...current, ...selectedFiles])
   }
+
+  const previewUrl = newFilesFirst
+    ? pendingPreviewUrls[0] || galleryUrls[0] || item.previewImageUrl
+    : galleryUrls[0] || pendingPreviewUrls[0] || item.previewImageUrl
 
   const handleSave = async () => {
     const normalizedPrice = price.trim()
@@ -82,40 +93,39 @@ function CatalogEditorCard({
     setStatus("")
 
     try {
-      let imageUrl = item.imageUrl || null
+      const formData = new FormData()
+      formData.append("productKey", item.key)
+      formData.append("price", normalizedPrice)
+      formData.append("isVisible", String(isVisible))
+      formData.append("imageUrls", JSON.stringify(galleryUrls))
+      formData.append("newFilesFirst", String(newFilesFirst))
+      formData.append("expectedRevision", String(item.revision))
+      files.forEach((image) => formData.append("images", image))
+      const { data: uploadData, error: uploadError } =
+        await supabase.functions.invoke("upload-product-image", {
+          body: formData,
+        })
 
-      if (file) {
-        const formData = new FormData()
-        formData.append("productKey", item.key)
-        formData.append("image", file)
-        formData.append("price", normalizedPrice)
-        formData.append("isVisible", String(isVisible))
-        const { data: uploadData, error: uploadError } =
-          await supabase.functions.invoke("upload-product-image", {
-            body: formData,
-          })
-
-        if (uploadError) throw uploadError
-        if (!uploadData?.publicUrl)
-          throw new Error("Upload không trả về URL ảnh.")
-        imageUrl = uploadData.publicUrl
-      } else {
-        const { error: updateError } = await supabase
-          .from("product_catalog_settings")
-          .update({
-            price: normalizedPrice,
-            image_url: imageUrl,
-            is_visible: isVisible,
-          })
-          .eq("product_key", item.key)
-          .select("product_key")
-          .single()
-
-        if (updateError) throw updateError
+      if (uploadError) {
+        let detail = uploadError.message
+        if ("context" in uploadError) {
+          try {
+            const payload = await (uploadError as {
+              context: Response
+            }).context.json()
+            if (payload?.error) detail = payload.error
+          } catch {
+            // Keep the Supabase client error when the response is not JSON.
+          }
+        }
+        throw new Error(detail)
       }
+      if (!Array.isArray(uploadData?.imageUrls))
+        throw new Error("Upload không trả về thư viện ảnh.")
 
       await onSaved()
-      setFile(null)
+      setFiles([])
+      setNewFilesFirst(false)
       setStatus("Đã lưu thay đổi.")
     } catch (error) {
       const message =
@@ -155,11 +165,90 @@ function CatalogEditorCard({
           Ảnh sản phẩm
           <input
             type="file"
+            multiple
             accept="image/jpeg,image/png,image/webp"
-            onChange={(event) => handleFileChange(event.target.files?.[0])}
+            onChange={(event) => {
+              handleFileChange(Array.from(event.target.files ?? []))
+              event.target.value = ""
+            }}
           />
-          <span>JPG, PNG hoặc WebP — tối đa 5 MB</span>
+          <span>Chọn nhiều JPG, PNG hoặc WebP — tối đa 5 MB/ảnh, 8 ảnh</span>
         </label>
+
+        {(galleryUrls.length > 0 || pendingPreviewUrls.length > 0) && (
+          <div
+            className="admin-gallery"
+            aria-label={`Thư viện ảnh ${item.title}`}
+          >
+            {galleryUrls.map((url, index) => (
+              <div
+                className={index === 0 && !newFilesFirst ? "is-cover" : ""}
+                key={url}
+              >
+                <button
+                  type="button"
+                  className="admin-gallery-image"
+                  onClick={() => {
+                    setGalleryUrls((current) =>
+                      moveGalleryImageToFront(current, index),
+                    )
+                    setNewFilesFirst(false)
+                  }}
+                  aria-label={`Đặt ảnh ${index + 1} làm ảnh đại diện`}
+                >
+                  <img src={url} alt="" />
+                </button>
+                <button
+                  type="button"
+                  className="admin-gallery-remove"
+                  onClick={() =>
+                    setGalleryUrls((current) =>
+                      current.filter((_, itemIndex) => itemIndex !== index),
+                    )
+                  }
+                  aria-label={`Xóa ảnh ${index + 1}`}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+            {pendingPreviewUrls.map((url, index) => (
+              <div
+                className={index === 0 && newFilesFirst ? "is-cover" : ""}
+                key={url}
+              >
+                <button
+                  type="button"
+                  className="admin-gallery-image"
+                  onClick={() => {
+                    setFiles((current) =>
+                      moveGalleryImageToFront(current, index),
+                    )
+                    setNewFilesFirst(true)
+                  }}
+                  aria-label={`Đặt ảnh mới ${index + 1} làm ảnh đại diện`}
+                >
+                  <img src={url} alt="" />
+                </button>
+                <button
+                  type="button"
+                  className="admin-gallery-remove"
+                  onClick={() =>
+                    setFiles((current) =>
+                      current.filter((_, itemIndex) => itemIndex !== index),
+                    )
+                  }
+                  aria-label={`Bỏ ảnh mới ${index + 1}`}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        <small className="admin-gallery-hint">
+          Bấm ảnh để đặt làm ảnh đại diện. Dấu × chỉ có hiệu lực sau khi lưu.
+        </small>
 
         <label className="admin-visibility-field">
           <input
@@ -254,7 +343,9 @@ export default function AdminCatalog() {
   const [checkingSession, setCheckingSession] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
   const [accessStatus, setAccessStatus] = useState("")
-  const [activeTab, setActiveTab] = useState<"products" | "content" | "ar">("products")
+  const [activeTab, setActiveTab] = useState<"products" | "content" | "ar">(
+    "products",
+  )
 
   const verifyAdmin = async (nextUser: User | null) => {
     setUser(nextUser)
@@ -311,8 +402,10 @@ export default function AdminCatalog() {
         subtitle: "Sản phẩm chính",
         price: product.price,
         imageUrl: productSetting?.imageUrl ?? null,
+        imageUrls: productSetting?.imageUrls ?? [],
         previewImageUrl: product.image,
         isVisible: productSetting?.isVisible ?? false,
+        revision: productSetting?.revision ?? 0,
       }
       const variantItems = getVariants(product, true).map((variant) => ({
         key: `${product.id}-${variant.id}`,
@@ -320,8 +413,13 @@ export default function AdminCatalog() {
         subtitle: variant.finish,
         price: variant.price,
         imageUrl: variant.imageUrl || null,
+        imageUrls: variant.imageUrls,
         previewImageUrl: variant.imageUrl || product.image,
         isVisible: variant.isVisible,
+        revision:
+          settings.find(
+            (setting) => setting.productKey === `${product.id}-${variant.id}`,
+          )?.revision ?? 0,
         variant,
       }))
 
@@ -372,9 +470,24 @@ export default function AdminCatalog() {
       </header>
 
       <nav className="admin-tabs" aria-label="Chức năng quản trị">
-        <button className={activeTab === "products" ? "active" : ""} onClick={() => setActiveTab("products")}>Sản phẩm</button>
-        <button className={activeTab === "content" ? "active" : ""} onClick={() => setActiveTab("content")}>Nội dung website</button>
-        <button className={activeTab === "ar" ? "active" : ""} onClick={() => setActiveTab("ar")}>Web AR</button>
+        <button
+          className={activeTab === "products" ? "active" : ""}
+          onClick={() => setActiveTab("products")}
+        >
+          Sản phẩm
+        </button>
+        <button
+          className={activeTab === "content" ? "active" : ""}
+          onClick={() => setActiveTab("content")}
+        >
+          Nội dung website
+        </button>
+        <button
+          className={activeTab === "ar" ? "active" : ""}
+          onClick={() => setActiveTab("ar")}
+        >
+          Web AR
+        </button>
       </nav>
 
       {activeTab === "products" && error && (
@@ -382,15 +495,23 @@ export default function AdminCatalog() {
           {error}
         </p>
       )}
-      {activeTab === "products" && (loading ? (
-        <p>Đang tải danh mục…</p>
-      ) : (
-        <section className="admin-product-grid" aria-label="Danh mục sản phẩm">
-          {editorItems.map((item) => (
-            <CatalogEditorCard key={item.key} item={item} onSaved={refresh} />
-          ))}
-        </section>
-      ))}
+      {activeTab === "products" &&
+        (loading ? (
+          <p>Đang tải danh mục…</p>
+        ) : (
+          <section
+            className="admin-product-grid"
+            aria-label="Danh mục sản phẩm"
+          >
+            {editorItems.map((item) => (
+              <CatalogEditorCard
+                key={item.key}
+                item={item}
+                onSaved={() => refresh(false)}
+              />
+            ))}
+          </section>
+        ))}
       {activeTab === "content" && <AdminContentEditor user={user} />}
       {activeTab === "ar" && <AdminArEditor />}
     </main>

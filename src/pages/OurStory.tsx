@@ -160,7 +160,6 @@ export default function OurStory() {
         <p>Mỗi mảnh ghép một dấu ấn,</p>
         <h2>mỗi mô hình một câu chuyện.</h2>
         <LinkButton href="/products">Khám phá bộ sưu tập</LinkButton>
-        <span className="statement-outline">DI SẢN</span>
       </section>
     </>
   )
