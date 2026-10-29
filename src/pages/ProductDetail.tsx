@@ -7,6 +7,7 @@ import { Icon, LinkButton } from "../components/Shared"
 import { useCart } from "../context/CartContext"
 
 import { useState, useRef, useEffect } from "react"
+import { QRCodeSVG } from "qrcode.react"
 
 import { buildVariantProduct } from "../features/products/productVariants"
 import { isUpcomingProduct } from "../data/products"
@@ -466,6 +467,19 @@ export default function ProductDetail() {
           <p className="nfc-fallback-copy">
             Không dùng được NFC? <Link to={`/heritage/${product.slug}`}>Mở câu chuyện di sản tại đây</Link>.
           </p>
+          <details className="nfc-qr-fallback">
+            <summary>Quét mã QR thay cho NFC</summary>
+            <div className="nfc-qr-card">
+              <QRCodeSVG
+                value={`https://kientichviet.vercel.app/heritage/${product.slug}`}
+                size={144}
+                level="M"
+                marginSize={4}
+                title={`Mã QR mở câu chuyện ${product.name}`}
+              />
+              <p>Dùng camera điện thoại khác quét mã để mở câu chuyện {product.name}.</p>
+            </div>
+          </details>
           <LinkButton href={`/heritage/${product.slug}`} dark>
             Khám phá trải nghiệm số
           </LinkButton>
