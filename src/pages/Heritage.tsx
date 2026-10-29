@@ -15,6 +15,7 @@ import {
   BookOpen,
   Compass,
   Layers,
+  Camera,
   X,
 } from "lucide-react"
 
@@ -1236,59 +1237,36 @@ export default function Heritage() {
                     </span>
                   </div>
 
-                  <button
-                    ref={open3DButtonRef}
-                    type="button"
-                    disabled={!product.modelUrl}
-                    onClick={() => {
-                      if (product.modelUrl) setIs3DModalOpen(true)
-                    }}
-                    className={
-                      product.modelUrl
-                        ? "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
-                        : "cursor-not-allowed opacity-75"
-                    }
-                    style={{
-                      display: "inline-flex",
-
-                      alignItems: "center",
-
-                      gap: "8px",
-
-                      minHeight: "44px",
-
-                      padding: "10px 20px",
-
-                      borderRadius: "8px",
-
-                      background:
-                        "linear-gradient(135deg, var(--gold) 0%, #e8ba75 100%)",
-
-                      border: "1px solid rgba(255, 209, 141, 0.4)",
-
-                      color: "#351b18",
-
-                      fontSize: "12.5px",
-
-                      fontWeight: 700,
-
-                      textTransform: "uppercase",
-
-                      letterSpacing: "0.06em",
-
-                      boxShadow: "0 4px 15px rgba(0, 0, 0, 0.35)",
-
-                      transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                    }}
-                    aria-haspopup="dialog"
-                    aria-expanded={is3DModalOpen}
-                    aria-controls="heritage-3d-dialog"
-                  >
-                    <Box size={16} />
-                    <span>
-                      {product.modelUrl ? "Xem mẫu 3D" : "Sắp ra mắt"}
-                    </span>
-                  </button>
+                  <div className="heritage-ar-actions">
+                    {product.modelUrl ? (
+                      <Link
+                        className="heritage-ar-camera-link"
+                        to={`/ar/${product.id}`}
+                      >
+                        <Camera size={17} />
+                        <span>Mở camera AR</span>
+                      </Link>
+                    ) : (
+                      <span className="heritage-ar-unavailable">AR sắp ra mắt</span>
+                    )}
+                    <button
+                      ref={open3DButtonRef}
+                      type="button"
+                      disabled={!product.modelUrl}
+                      onClick={() => {
+                        if (product.modelUrl) setIs3DModalOpen(true)
+                      }}
+                      className="heritage-3d-button"
+                      aria-haspopup="dialog"
+                      aria-expanded={is3DModalOpen}
+                      aria-controls="heritage-3d-dialog"
+                    >
+                      <Box size={16} />
+                      <span>
+                        {product.modelUrl ? "Xem mô hình 3D" : "Sắp ra mắt"}
+                      </span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

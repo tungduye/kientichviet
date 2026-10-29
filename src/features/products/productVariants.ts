@@ -39,8 +39,37 @@ const THAP_RUA_VARIANTS: ProductVariant[] = [
   },
 ]
 
+const CHUA_MOT_COT_VARIANTS: ProductVariant[] = [
+  {
+    id: "basic",
+    name: "Basic",
+    finish: "Gỗ không màu",
+    description: "Phiên bản cơ bản của mô hình Chùa Một Cột đang được hoàn thiện.",
+    price: "COMING SOON",
+    imageMode: "monochrome",
+  },
+  {
+    id: "signature",
+    name: "Signature",
+    finish: "Phiên bản có màu",
+    description: "Phiên bản màu của Chùa Một Cột sẽ được giới thiệu sau.",
+    price: "COMING SOON",
+    imageMode: "color",
+  },
+  {
+    id: "premium",
+    name: "Premium",
+    finish: "Khảm mosaic · COMING SOON",
+    description: "Phiên bản Premium khảm mosaic đang trong giai đoạn chuẩn bị.",
+    price: "COMING SOON",
+    imageMode: "placeholder",
+  },
+]
+
 export function getProductVariants(product: Product): ProductVariant[] {
-  return product.slug === "thap-rua" ? THAP_RUA_VARIANTS : []
+  if (product.slug === "thap-rua") return THAP_RUA_VARIANTS
+  if (product.slug === "chua-mot-cot") return CHUA_MOT_COT_VARIANTS
+  return []
 }
 
 export function buildVariantProduct(

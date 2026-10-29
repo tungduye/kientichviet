@@ -62,7 +62,7 @@ export const products: Product[] = [
     slug: "chua-mot-cot",
     name: "Chùa Một Cột",
     eyebrow: "Hà Nội · Di sản Thăng Long",
-    price: "890.000 ₫",
+    price: UPCOMING_PRODUCT_ACCENT,
     image: "/images/chua-mot-cot.jpg",
     number: "03",
     accent: UPCOMING_PRODUCT_ACCENT,

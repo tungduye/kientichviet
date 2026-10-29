@@ -10,9 +10,11 @@ import { useState, useRef, useEffect } from "react"
 
 import { buildVariantProduct } from "../features/products/productVariants"
 import { isUpcomingProduct } from "../data/products"
+import ProductReviews from "../components/catalog/ProductReviews"
 
 export default function ProductDetail() {
-  const { products, findProduct, getVariants } = useCatalog()
+  const { products, findProduct, getVariants, loading: catalogLoading } =
+    useCatalog()
   const { slug } = useParams<{ slug: string }>()
 
   const { addToCart } = useCart()
@@ -35,6 +37,7 @@ export default function ProductDetail() {
     product && selectedVariant
       ? buildVariantProduct(product, selectedVariant)
       : product
+  const isProductUpcoming = product ? isUpcomingProduct(product) : false
   const galleryImages = selectedVariant
     ? selectedVariant.imageUrls.length
       ? selectedVariant.imageUrls
@@ -96,6 +99,14 @@ export default function ProductDetail() {
     }
   }
 
+  if (!product && catalogLoading) {
+    return (
+      <main className="product-detail-loading" aria-busy="true" role="status">
+        Đang tải thông tin sản phẩm…
+      </main>
+    )
+  }
+
   if (!product) {
     return (
       <div
@@ -109,58 +120,49 @@ export default function ProductDetail() {
 
   return (
     <>
-      <div
-        style={{
-          padding: "150px 5vw 80px",
-
-          display: "flex",
-
-          justifyContent: "center",
-        }}
-      >
+      <div className="product-detail-shell">
         <div
-          className="product-modal"
-          style={{
-            position: "relative",
-
-            top: "auto",
-
-            left: "auto",
-
-            transform: "none",
-
-            maxHeight: "none",
-
-            boxShadow: "0 20px 40px rgba(0,0,0,0.05)",
-          }}
+          className="product-modal product-detail-layout"
         >
-          <div className="modal-image reveal" style={{ position: "relative" }}>
+          <div className="modal-image product-detail-gallery reveal">
             {selectedVariant?.imageMode === "placeholder" &&
             !activeGalleryImage ? (
-              <div
-                className="variant-image-placeholder"
-                role="img"
-                aria-label="Hình ảnh phiên bản Premium đang cập nhật"
-              >
-                <Icon name="sparkle" size={34} />
-                <strong>Premium Mosaic</strong>
-                <span>Hình ảnh đang được hoàn thiện</span>
-              </div>
+              isProductUpcoming ? (
+                <div className="upcoming-product-visual" role="img" aria-label="Chùa Một Cột — COMING SOON">
+                  <img src={product.image} alt="" />
+                  <span>COMING SOON</span>
+                </div>
+              ) : (
+                <div
+                  className="variant-image-placeholder"
+                  role="img"
+                  aria-label="Hình ảnh phiên bản Premium đang cập nhật"
+                >
+                  <Icon name="sparkle" size={34} />
+                  <strong>Premium Mosaic</strong>
+                  <span>Hình ảnh đang được hoàn thiện</span>
+                </div>
+              )
             ) : (
-              <img
-                className={`reveal-image ${
-                  selectedVariant?.imageMode === "monochrome" &&
-                  !selectedVariant.imageUrl
-                    ? "variant-image-monochrome"
-                    : ""
-                }`}
-                src={
-                  activeGalleryImage || selectedProduct?.image || product.image
-                }
-                alt={`${product.name}${
-                  selectedVariant ? ` phiên bản ${selectedVariant.name}` : ""
-                }`}
-              />
+              <>
+                <img
+                  className={`reveal-image ${
+                    selectedVariant?.imageMode === "monochrome" &&
+                    !selectedVariant.imageUrl
+                      ? "variant-image-monochrome"
+                      : ""
+                  } ${isProductUpcoming ? "variant-image-upcoming" : ""}`}
+                  src={
+                    activeGalleryImage || selectedProduct?.image || product.image
+                  }
+                  alt={`${product.name}${
+                    selectedVariant ? ` phiên bản ${selectedVariant.name}` : ""
+                  }`}
+                />
+                {isProductUpcoming && (
+                  <span className="product-detail-coming-soon">COMING SOON</span>
+                )}
+              </>
             )}
             {galleryImages.length > 1 && (
               <>
@@ -222,7 +224,7 @@ export default function ProductDetail() {
                 <div
                   className="variant-options"
                   role="radiogroup"
-                  aria-label="Dòng sản phẩm Tháp Rùa"
+                  aria-label={`Dòng sản phẩm ${product.name}`}
                 >
                   {variants.map((variant) => (
                     <button
@@ -288,17 +290,17 @@ export default function ProductDetail() {
             </div>
             <div className="modal-buy" style={{ marginTop: "35px" }}>
               <strong>
-                {isUpcomingProduct(product)
+                {isProductUpcoming
                   ? "Sắp ra mắt"
                   : selectedProduct?.price}
               </strong>
               <button
                 type="button"
-                disabled={isUpcomingProduct(product)}
+                disabled={isProductUpcoming}
                 onClick={() => selectedProduct && addToCart(selectedProduct)}
               >
                 <span>
-                  {isUpcomingProduct(product)
+                  {isProductUpcoming
                     ? "Chưa mở bán"
                     : selectedProduct?.price === "Liên hệ"
                       ? "Yêu cầu tư vấn"
@@ -467,43 +469,7 @@ export default function ProductDetail() {
         </div>
       </section>
 
-      {/* REVIEWS SECTION */}
-      <section
-        className="reviews section-pad"
-        style={{ background: "#f9f9f9" }}
-      >
-        <div className="section-heading reveal" style={{ textAlign: "center" }}>
-          <p className="kicker">Đánh giá</p>
-          <h2>Khách hàng nói gì</h2>
-        </div>
-        <div
-          style={{
-            maxWidth: "600px",
-
-            margin: "40px auto 0",
-
-            textAlign: "center",
-
-            padding: "40px",
-
-            background: "#fff",
-
-            borderRadius: "8px",
-
-            boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
-          }}
-        >
-          <div style={{ opacity: 0.3, marginBottom: "20px" }}>
-            <Icon name="sparkle" size={48} />
-          </div>
-          <h3 style={{ marginBottom: "10px", fontSize: "24px" }}>
-            Chưa có đánh giá
-          </h3>
-          <p style={{ color: "#666" }}>
-            Hãy là người đầu tiên chia sẻ trải nghiệm của bạn.
-          </p>
-        </div>
-      </section>
+      <ProductReviews productId={product.id} />
 
       {/* RELATED PRODUCTS SECTION */}
       <section className="related-products section-pad">

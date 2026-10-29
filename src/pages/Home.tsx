@@ -250,6 +250,11 @@ export default function Home() {
                 aria-label={`Xem ${product.name}`}
               >
                 <img src={product.image} alt={product.name} />
+                {isUpcomingProduct(product) && (
+                  <span className="product-coming-soon-overlay" aria-hidden="true">
+                    COMING SOON
+                  </span>
+                )}
                 <span className="product-number">{product.number}</span>
                 <span
                   className={`product-accent badge-${

@@ -124,6 +124,36 @@ export type Database = {
         }
         Relationships: []
       }
+      product_reviews: {
+        Row: {
+          id: string
+          product_id: string
+          customer_name: string
+          rating: number
+          body: string
+          is_visible: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          product_id: string
+          customer_name: string
+          rating: number
+          body: string
+          is_visible?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          product_id?: string
+          customer_name?: string
+          rating?: number
+          body?: string
+          is_visible?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
       site_content: {
         Row: { content_key: string; published_value: string; is_visible: boolean; revision: number; published_at: string; published_by: string | null }
         Insert: { content_key: string; published_value?: string; is_visible?: boolean; revision?: number; published_at?: string; published_by?: string | null }

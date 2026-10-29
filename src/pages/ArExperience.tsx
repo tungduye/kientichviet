@@ -7,6 +7,16 @@ import { getArReadiness, type ArExperienceConfig } from "../features/ar/arConfig
 import { supabase } from "../integrations/supabase/client"
 import ModelViewer3D from "../components/ModelViewer3D"
 
+const IOS_MODEL_BY_PRODUCT: Record<string, string> = {
+  p1: "/models/Thap-rua-model.usdz",
+  p3: "/models/Hang-Trong-Model.usdz",
+}
+
+const TRACKING_IMAGE_BY_PRODUCT: Record<string, string> = {
+  p1: "/images/thap-rua.jpg",
+  p3: "/images/pho-hang-trong.jpg",
+}
+
 export default function ArExperience() {
   const { productId = "" } = useParams()
   const [config, setConfig] = useState<ArExperienceConfig | null>(null)
@@ -79,14 +89,31 @@ export default function ArExperience() {
 
   const readiness = config ? getArReadiness(config) : null
   return <main className="ar-page">
-    <header className="ar-page-header"><Link to="/">← Trang chủ</Link><h1>Kiến Tích Việt · Web AR</h1><p>{status}</p></header>
+    <header className="ar-page-header">
+      <Link to="/heritage">← Quay lại Di sản số</Link>
+      <p className="ar-page-kicker">Trải nghiệm dành cho khách hàng</p>
+      <h1>Đưa mô hình vào không gian thật</h1>
+      <p className="ar-page-status" role="status">{status}</p>
+    </header>
     {readiness?.ready && readiness.mode === "image-tracking" && <>
       <div ref={containerRef} className="ar-camera-stage" />
-      {!started && <button className="ar-start-button" onClick={() => void startTracking()}>Mở camera & bắt đầu quét</button>}
+      {!started && <button className="ar-start-button" onClick={() => void startTracking()}>Mở camera & quét ảnh sản phẩm</button>}
       {started && <button className="ar-stop-button" onClick={stopTracking}>Dừng camera</button>}
-      <p className="ar-privacy">Camera chỉ được mở sau khi bạn bấm nút. Trình duyệt sẽ yêu cầu cấp quyền; luồng hình ảnh được xử lý trên thiết bị.</p>
+      <div className="ar-customer-guide">
+        <strong>Cách sử dụng</strong>
+        <ol><li>Bấm nút mở camera và cho phép truy cập camera.</li><li>Hướng camera vào đúng ảnh nhận diện bên dưới.</li><li>Khi nhận diện thành công, mô hình sẽ xuất hiện và bám theo ảnh trong khung hình.</li></ol>
+        {TRACKING_IMAGE_BY_PRODUCT[productId] && <figure className="ar-tracking-target">
+          <img src={TRACKING_IMAGE_BY_PRODUCT[productId]} alt="Ảnh dùng để nhận diện sản phẩm trong camera AR" />
+          <figcaption>Ảnh nhận diện — có thể mở ảnh này trên thiết bị khác hoặc dùng ảnh in trên hộp sản phẩm.</figcaption>
+        </figure>}
+      </div>
+      <p className="ar-privacy">Camera chỉ mở sau khi bạn bấm nút. Hình ảnh được xử lý trực tiếp trên thiết bị và không được tải lên máy chủ.</p>
     </>}
-    {readiness?.ready && readiness.mode === "plane-placement" && config?.modelUrl && <section className="ar-fallback"><ModelViewer3D src={config.modelUrl} alt="Mô hình AR Kiến Tích Việt" /><p>Chưa có tệp mục tiêu .mind. Bạn vẫn có thể bấm “Xem AR” để đặt mô hình trên mặt phẳng bằng tính năng AR của điện thoại.</p></section>}
+    {readiness?.ready && readiness.mode === "plane-placement" && config?.modelUrl && <section className="ar-fallback">
+      <div className="ar-mode-intro"><strong>Camera AR</strong><span>Bấm “Xem AR” trên khung mô hình để đặt sản phẩm lên bàn hoặc sàn nhà.</span></div>
+      <ModelViewer3D src={config.modelUrl} iosSrc={IOS_MODEL_BY_PRODUCT[productId]} title="Mở camera AR" alt="Mô hình AR Kiến Tích Việt" />
+      <p>Trên điện thoại hỗ trợ AR, nút “Xem AR” sẽ mở camera và cho phép đặt mô hình vào không gian thật.</p>
+    </section>}
     {readiness && !readiness.ready && <div className="ar-empty">{readiness.message}</div>}
   </main>
 }

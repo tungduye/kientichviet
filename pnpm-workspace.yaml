@@ -4,5 +4,6 @@ allowBuilds:
 overrides:
   mind-ar>canvas: '-'
   mind-ar>@vitejs/plugin-basic-ssl: '-'
+  mind-ar>@tensorflow/tfjs: 4.16.0
 patchedDependencies:
   mind-ar@1.2.5: patches/mind-ar@1.2.5.patch
