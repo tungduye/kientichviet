@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react"
 import { Link, useParams } from "react-router-dom"
-import { AmbientLight, DirectionalLight, Matrix4, type Group } from "three"
+import { AmbientLight, DirectionalLight, Matrix4, Raycaster, Vector2, type Camera, type Group } from "three"
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js"
 
 import { getArReadiness, type ArExperienceConfig } from "../features/ar/arConfig"
@@ -82,6 +82,9 @@ export default function ArExperience() {
   const attemptRef = useRef(0)
   const zoomTrackRef = useRef<MediaStreamTrack | null>(null)
   const modelRefs = useRef<Group[]>([])
+  const modelRaycasterRef = useRef(new Raycaster())
+  const modelPointerRef = useRef(new Vector2())
+  const modelDragRef = useRef<{ pointerId: number; x: number; y: number } | null>(null)
   const pendingStartRef = useRef<Promise<void> | null>(null)
 
   useEffect(() => {
@@ -89,7 +92,39 @@ export default function ArExperience() {
     document.addEventListener("fullscreenchange", syncFullscreen)
     return () => document.removeEventListener("fullscreenchange", syncFullscreen)
   }, [])
-  const mindarRef = useRef<{ stop: () => void; renderer: { setAnimationLoop: (callback: null | (() => void)) => void } } | null>(null)
+  const mindarRef = useRef<{ stop: () => void; camera: Camera; renderer: { domElement: HTMLCanvasElement; setAnimationLoop: (callback: null | (() => void)) => void } } | null>(null)
+
+  const beginModelRotation = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const mindar = mindarRef.current
+    const canvas = mindar?.renderer.domElement
+    if (!mindar || !canvas || event.target !== canvas || (event.pointerType === "mouse" && event.button !== 0)) return
+    const rect = canvas.getBoundingClientRect()
+    modelPointerRef.current.set(((event.clientX - rect.left) / rect.width) * 2 - 1, -((event.clientY - rect.top) / rect.height) * 2 + 1)
+    modelRaycasterRef.current.setFromCamera(modelPointerRef.current, mindar.camera)
+    const visibleModels = modelRefs.current.filter((model) => model.parent?.visible)
+    if (!modelRaycasterRef.current.intersectObjects(visibleModels, true).length) return
+    event.preventDefault()
+    modelDragRef.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY }
+    try { canvas.setPointerCapture(event.pointerId) } catch { /* Pointer capture is not required on every browser. */ }
+  }
+
+  const rotateModel = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const drag = modelDragRef.current
+    if (!drag || drag.pointerId !== event.pointerId) return
+    const deltaX = event.clientX - drag.x
+    const deltaY = event.clientY - drag.y
+    drag.x = event.clientX
+    drag.y = event.clientY
+    for (const model of modelRefs.current) {
+      model.rotation.y += deltaX * 0.012
+      model.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, model.rotation.x + deltaY * 0.012))
+    }
+    event.preventDefault()
+  }
+
+  const endModelRotation = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (modelDragRef.current?.pointerId === event.pointerId) modelDragRef.current = null
+  }
 
   useEffect(() => {
     activeRef.current = true
@@ -126,6 +161,7 @@ export default function ArExperience() {
       mindar.renderer.domElement.style.inset = "0"
       mindar.renderer.domElement.style.width = "100%"
       mindar.renderer.domElement.style.height = "100%"
+      mindar.renderer.domElement.style.touchAction = "none"
       const targetLabels = productId === "p1" ? THAP_RUA_ANGLE_IMAGES.map((image) => image.label) : ["Phố Hàng Trống"]
       const anchors = targetLabels.map((label, index) => {
         const anchor = mindar.addAnchor(index)
@@ -261,6 +297,7 @@ export default function ArExperience() {
     pendingStartRef.current = null
     zoomTrackRef.current = null
     modelRefs.current = []
+    modelDragRef.current = null
     containerRef.current?.replaceChildren()
     setCameraReady(false)
     setCameraZoom(null)
@@ -298,12 +335,13 @@ export default function ArExperience() {
     </header>
     {readiness?.ready && readiness.mode === "image-tracking" && <>
       <div ref={cameraShellRef} className={`ar-camera-shell${fullscreen ? " is-fullscreen" : ""}${cameraReady ? " has-model-scale" : ""}${cameraZoom ? " has-camera-zoom" : ""}`}>
-        <div ref={containerRef} className="ar-camera-stage" />
+        <div ref={containerRef} className="ar-camera-stage" onPointerDown={beginModelRotation} onPointerMove={rotateModel} onPointerUp={endModelRotation} onPointerCancel={endModelRotation} />
         {started && !cameraReady && <div className="ar-camera-wait" role="status">Đang bật camera và chờ hình ảnh…<small>Nếu màn hình vẫn đen, đóng ứng dụng khác đang dùng camera rồi thử lại.</small></div>}
         {started && <button type="button" className="ar-camera-fullscreen-button" aria-label={fullscreen ? "Thoát toàn màn hình" : "Phóng camera toàn màn hình"} onClick={() => void toggleFullscreen()}>{fullscreen ? "Thu nhỏ màn hình" : "Toàn màn hình"}</button>}
         {started && cameraReady && targetState !== "tracking" && <div className={`ar-target-overlay${targetState === "held" ? " is-held" : ""}`} role="status">
           {targetState === "held" ? "Ảnh khuất · mô hình giữ vị trí cuối" : "Hướng camera vào một ảnh mục tiêu"}
         </div>}
+        {started && cameraReady && targetState === "tracking" && <div className="ar-target-overlay" aria-hidden="true">Kéo trên mô hình để xoay</div>}
         {started && cameraReady && <>
           <label className="ar-model-scale">
             <span>Phóng mô hình <output>{modelZoom.toFixed(1)}×</output></span>
