@@ -25,11 +25,19 @@ export default function ArExperience() {
   const [config, setConfig] = useState<ArExperienceConfig | null>(null)
   const [status, setStatus] = useState("Đang tải cấu hình AR…")
   const [started, setStarted] = useState(false)
+  const [fullscreen, setFullscreen] = useState(false)
   const [cameraZoom, setCameraZoom] = useState<CameraZoom | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const cameraShellRef = useRef<HTMLDivElement>(null)
   const activeRef = useRef(true)
   const attemptRef = useRef(0)
   const zoomTrackRef = useRef<MediaStreamTrack | null>(null)
+
+  useEffect(() => {
+    const syncFullscreen = () => setFullscreen(document.fullscreenElement === cameraShellRef.current)
+    document.addEventListener("fullscreenchange", syncFullscreen)
+    return () => document.removeEventListener("fullscreenchange", syncFullscreen)
+  }, [])
   const mindarRef = useRef<{ stop: () => void; renderer: { setAnimationLoop: (callback: null | (() => void)) => void } } | null>(null)
 
   useEffect(() => {
@@ -119,12 +127,31 @@ export default function ArExperience() {
   const stopTracking = () => {
     attemptRef.current += 1
     try { mindarRef.current?.renderer.setAnimationLoop(null); mindarRef.current?.stop() } catch { /* Camera may already be stopped. */ }
+    if (document.fullscreenElement === cameraShellRef.current) void document.exitFullscreen().catch(() => undefined)
     mindarRef.current = null
     zoomTrackRef.current = null
     containerRef.current?.replaceChildren()
     setCameraZoom(null)
+    setFullscreen(false)
     setStarted(false)
     setStatus("Camera đã dừng.")
+  }
+
+  const toggleFullscreen = async () => {
+    const shell = cameraShellRef.current
+    if (!shell) return
+    if (fullscreen) {
+      if (document.fullscreenElement === shell) await document.exitFullscreen().catch(() => undefined)
+      setFullscreen(false)
+      return
+    }
+    try {
+      await shell.requestFullscreen()
+      setFullscreen(true)
+    } catch {
+      // Keep a CSS full-screen view on browsers that do not allow element fullscreen.
+      setFullscreen(true)
+    }
   }
 
   const readiness = config ? getArReadiness(config) : null
@@ -136,12 +163,15 @@ export default function ArExperience() {
       <p className="ar-page-status" role="status">{status}</p>
     </header>
     {readiness?.ready && readiness.mode === "image-tracking" && <>
-      <div ref={containerRef} className="ar-camera-stage" />
-      {started && cameraZoom && <div className="ar-camera-zoom" aria-label="Điều chỉnh mức thu phóng camera">
-        <button type="button" aria-label="Thu nhỏ camera" title="Thu nhỏ camera" disabled={cameraZoom.value <= cameraZoom.min} onClick={() => void adjustCameraZoom(-1)}>−</button>
-        <output aria-live="polite">{cameraZoom.value.toFixed(1)}× <span>thu phóng</span></output>
-        <button type="button" aria-label="Phóng to camera" title="Phóng to camera" disabled={cameraZoom.value >= cameraZoom.max} onClick={() => void adjustCameraZoom(1)}>+</button>
-      </div>}
+      <div ref={cameraShellRef} className={`ar-camera-shell${fullscreen ? " is-fullscreen" : ""}`}>
+        <div ref={containerRef} className="ar-camera-stage" />
+        {started && <button type="button" className="ar-camera-fullscreen-button" aria-label={fullscreen ? "Thoát toàn màn hình" : "Phóng camera toàn màn hình"} onClick={() => void toggleFullscreen()}>{fullscreen ? "Thu nhỏ màn hình" : "Toàn màn hình"}</button>}
+        {started && cameraZoom && <div className="ar-camera-zoom" aria-label="Điều chỉnh mức thu phóng camera">
+          <button type="button" aria-label="Thu nhỏ camera" title="Thu nhỏ camera" disabled={cameraZoom.value <= cameraZoom.min} onClick={() => void adjustCameraZoom(-1)}>−</button>
+          <output aria-live="polite">{cameraZoom.value.toFixed(1)}× <span>thu phóng</span></output>
+          <button type="button" aria-label="Phóng to camera" title="Phóng to camera" disabled={cameraZoom.value >= cameraZoom.max} onClick={() => void adjustCameraZoom(1)}>+</button>
+        </div>}
+      </div>
       {!started && <button className="ar-start-button" onClick={() => void startTracking()}>Mở camera & quét ảnh sản phẩm</button>}
       {started && <button className="ar-stop-button" onClick={stopTracking}>Dừng camera</button>}
       <div className="ar-customer-guide">

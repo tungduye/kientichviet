@@ -2394,10 +2394,16 @@ h2 { letter-spacing: -0.015em !important; }
 .ar-page-header p { margin: 0; color: #dbc8bb; }
 .ar-page-kicker { margin-top: 18px !important; color: #ffd18d !important; font-size: 11px; font-weight: 800; letter-spacing: 0.13em; text-transform: uppercase; }
 .ar-page-status { margin-top: 7px !important; line-height: 1.55; }
+.ar-camera-shell { position: relative; width: min(900px, 100%); height: min(72dvh, 720px); margin: auto; }
 .ar-camera-stage { position: relative; isolation: isolate; width: min(900px, 100%); height: min(72dvh, 720px); margin: auto; overflow: hidden; border: 1px solid #ffd18d55; border-radius: 18px; background: #000; }
+.ar-camera-shell .ar-camera-stage { width: 100%; height: 100%; max-height: none; margin: 0; }
 .ar-camera-stage > video { z-index: 0 !important; max-width: none; }
 .ar-camera-stage > canvas { z-index: 1; }
-.ar-camera-zoom { display: flex; align-items: center; justify-content: center; gap: 14px; width: max-content; max-width: 100%; margin: 12px auto 0; padding: 7px 10px; border: 1px solid rgba(255, 209, 141, 0.36); border-radius: 999px; background: rgba(255, 248, 238, 0.08); }
+.ar-camera-shell.is-fullscreen { position: fixed; inset: 0; z-index: 1000; width: 100vw; height: 100dvh; max-width: none; margin: 0; background: #000; }
+.ar-camera-shell.is-fullscreen .ar-camera-stage { min-height: 0; border: 0; border-radius: 0; }
+.ar-camera-fullscreen-button { position: absolute; top: 12px; right: 12px; z-index: 3; min-height: 44px; padding: 9px 13px; border: 1px solid rgba(255, 209, 141, 0.58); border-radius: 999px; color: #fff8ee; background: rgba(22, 11, 13, 0.78); font-size: 12px; font-weight: 800; backdrop-filter: blur(8px); }
+.ar-camera-fullscreen-button:focus-visible { outline: 3px solid #ffd18d; outline-offset: 3px; }
+.ar-camera-zoom { position: absolute; bottom: 16px; left: 50%; z-index: 3; display: flex; align-items: center; justify-content: center; gap: 14px; width: max-content; max-width: calc(100% - 24px); margin: 0; padding: 7px 10px; transform: translateX(-50%); border: 1px solid rgba(255, 209, 141, 0.36); border-radius: 999px; background: rgba(22, 11, 13, 0.78); backdrop-filter: blur(8px); }
 .ar-camera-zoom button { width: 44px; height: 44px; border: 1px solid rgba(255, 209, 141, 0.52); border-radius: 50%; color: #351b18; background: #ffd18d; font-size: 24px; font-weight: 700; line-height: 1; }
 .ar-camera-zoom button:disabled { cursor: not-allowed; opacity: 0.42; }
 .ar-camera-zoom button:focus-visible { outline: 3px solid #fff8ee; outline-offset: 3px; }
@@ -2462,7 +2468,7 @@ h2 { letter-spacing: -0.015em !important; }
   .admin-content-field { grid-template-columns: 1fr; }
   .admin-ar-numbers { grid-template-columns: repeat(2, 1fr); }
   .ar-page { padding: 12px; }
-  .ar-camera-stage { height: 68dvh; }
+  .ar-camera-shell { width: 100%; height: 68dvh; }
   .ar-mode-intro { align-items: flex-start; flex-direction: column; gap: 5px; }
   .ar-mode-intro span { text-align: left; }
   .ar-tracking-target { grid-template-columns: 84px 1fr; }
@@ -3344,6 +3350,8 @@ iframe {
   .admin-ar-guide-heading { flex-direction: column; }
   .ar-page { padding: 12px; }
   .ar-page-header h1 { font-size: clamp(27px, 8vw, 36px); }
+  .ar-camera-shell { width: 100%; height: 62dvh; min-height: 300px; max-height: 620px; }
+  .ar-camera-shell.is-fullscreen { width: 100vw; height: 100dvh; min-height: 0; max-height: none; }
   .ar-camera-stage { width: 100%; height: 62dvh; min-height: 300px; max-height: 620px; border-radius: 12px; }
   .ar-fallback > .model-viewer-container { height: 56dvh; min-height: 280px; }
   .chat-panel-container { width: 100vw; max-width: 100vw; }
