@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react"
 import { Link, useParams } from "react-router-dom"
-import { AmbientLight, DirectionalLight, Matrix4, Raycaster, Vector2, type Camera, type Group } from "three"
+import { AmbientLight, Box3, DirectionalLight, Matrix4, Raycaster, Vector2, Vector3, type Camera, type Group } from "three"
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js"
 
 import { getArReadiness, type ArExperienceConfig } from "../features/ar/arConfig"
@@ -25,7 +25,9 @@ const THAP_RUA_ANGLE_IMAGES = [
 type CameraZoom = { min: number; max: number; step: number; value: number }
 type CameraZoomCapabilities = MediaTrackCapabilities & { zoom?: { min: number; max: number; step: number } }
 type TargetState = "searching" | "tracking" | "held"
-const INITIAL_MODEL_ZOOM = 3
+const INITIAL_MODEL_ZOOM = 1.25
+const MIN_MODEL_ZOOM = 0.5
+const MAX_MODEL_ZOOM = 3
 
 function getCameraErrorMessage(error: unknown): string {
   const name = error instanceof DOMException ? error.name : ""
@@ -82,6 +84,7 @@ export default function ArExperience() {
   const attemptRef = useRef(0)
   const zoomTrackRef = useRef<MediaStreamTrack | null>(null)
   const modelRefs = useRef<Group[]>([])
+  const modelScaleBasesRef = useRef<number[]>([])
   const modelRaycasterRef = useRef(new Raycaster())
   const modelPointerRef = useRef(new Vector2())
   const modelDragRef = useRef<{ pointerId: number; x: number; y: number } | null>(null)
@@ -200,9 +203,13 @@ export default function ArExperience() {
       mindar.scene.add(keyLight)
       const model = await new GLTFLoader().loadAsync(config.modelUrl)
       if (!activeRef.current || attempt !== attemptRef.current) { try { mindar.stop() } catch { /* Not started yet. */ } return }
+      const modelBounds = new Box3().setFromObject(model.scene)
+      const modelHeight = modelBounds.getSize(new Vector3()).y
+      const scaleBase = modelHeight > 0 ? config.scale / modelHeight : config.scale
+      modelScaleBasesRef.current = anchors.map(() => scaleBase)
       modelRefs.current = anchors.map(({ group }) => {
         const modelScene = model.scene.clone(true)
-        modelScene.scale.setScalar(config.scale * INITIAL_MODEL_ZOOM)
+        modelScene.scale.setScalar(scaleBase * INITIAL_MODEL_ZOOM)
         modelScene.position.set(config.offsetX, config.offsetY, config.offsetZ)
         modelScene.rotation.set(config.rotationX, config.rotationY, config.rotationZ)
         group.add(modelScene)
@@ -266,6 +273,7 @@ export default function ArExperience() {
       pendingStartRef.current = null
       zoomTrackRef.current = null
       modelRefs.current = []
+      modelScaleBasesRef.current = []
       setCameraReady(false)
       setCameraZoom(null)
       setStarted(false)
@@ -297,6 +305,7 @@ export default function ArExperience() {
     pendingStartRef.current = null
     zoomTrackRef.current = null
     modelRefs.current = []
+    modelScaleBasesRef.current = []
     modelDragRef.current = null
     containerRef.current?.replaceChildren()
     setCameraReady(false)
@@ -327,15 +336,16 @@ export default function ArExperience() {
 
   const readiness = config ? getArReadiness(config) : null
   return <main className="ar-page">
-    <header className="ar-page-header">
+    <header className={`ar-page-header${started ? " is-running" : ""}`}>
       <Link to="/heritage">← Quay lại Di sản số</Link>
       <p className="ar-page-kicker">Trải nghiệm dành cho khách hàng</p>
-      <h1>Đưa mô hình vào không gian thật</h1>
-      <p className="ar-page-status" role="status">{status}</p>
+      <h1>{productId === "p1" ? "AR Tháp Rùa" : productId === "p3" ? "AR Phố Hàng Trống" : "Trải nghiệm AR"}</h1>
+      <p className={`ar-page-status${started ? " is-active" : ""}`} role="status">{status}</p>
     </header>
     {readiness?.ready && readiness.mode === "image-tracking" && <>
       <div ref={cameraShellRef} className={`ar-camera-shell${fullscreen ? " is-fullscreen" : ""}${cameraReady ? " has-model-scale" : ""}${cameraZoom ? " has-camera-zoom" : ""}`}>
         <div ref={containerRef} className="ar-camera-stage" onPointerDown={beginModelRotation} onPointerMove={rotateModel} onPointerUp={endModelRotation} onPointerCancel={endModelRotation} />
+        {!started && <button className="ar-start-button ar-start-button-overlay" onClick={() => void startTracking()}>Mở camera &amp; quét ảnh sản phẩm</button>}
         {started && !cameraReady && <div className="ar-camera-wait" role="status">Đang bật camera và chờ hình ảnh…<small>Nếu màn hình vẫn đen, đóng ứng dụng khác đang dùng camera rồi thử lại.</small></div>}
         {started && <button type="button" className="ar-camera-fullscreen-button" aria-label={fullscreen ? "Thoát toàn màn hình" : "Phóng camera toàn màn hình"} onClick={() => void toggleFullscreen()}>{fullscreen ? "Thu nhỏ màn hình" : "Toàn màn hình"}</button>}
         {started && cameraReady && targetState !== "tracking" && <div className={`ar-target-overlay${targetState === "held" ? " is-held" : ""}`} role="status">
@@ -343,23 +353,24 @@ export default function ArExperience() {
         </div>}
         {started && cameraReady && targetState === "tracking" && <div className="ar-target-overlay" aria-hidden="true">Kéo trên mô hình để xoay</div>}
         {started && cameraReady && <>
-          <label className="ar-model-scale">
-            <span>Phóng mô hình <output>{modelZoom.toFixed(1)}×</output></span>
-            <input aria-label="Phóng to hoặc thu nhỏ mô hình AR" type="range" min="0.5" max="8" step="0.1" value={modelZoom} onChange={(event) => {
-              const next = Number(event.target.value)
-              setModelZoom(next)
-              modelRefs.current.forEach((model) => model.scale.setScalar((config?.scale ?? 1) * next))
-            }} />
-          </label>
+          <div className="ar-camera-controls">
+            <label className="ar-model-scale">
+              <span>Phóng mô hình <output>{modelZoom.toFixed(1)}×</output></span>
+              <input aria-label="Phóng to hoặc thu nhỏ mô hình AR" type="range" min={MIN_MODEL_ZOOM} max={MAX_MODEL_ZOOM} step="0.1" value={modelZoom} onChange={(event) => {
+                const next = Number(event.target.value)
+                setModelZoom(next)
+                modelRefs.current.forEach((model, index) => model.scale.setScalar((modelScaleBasesRef.current[index] ?? 1) * next))
+              }} />
+            </label>
+            {cameraZoom && <div className="ar-camera-zoom" aria-label="Điều chỉnh mức thu phóng camera">
+              <button type="button" aria-label="Thu nhỏ camera" title="Thu nhỏ camera" disabled={cameraZoom.value <= cameraZoom.min} onClick={() => void adjustCameraZoom(-1)}>−</button>
+              <output aria-live="polite">{cameraZoom.value.toFixed(1)}× <span>camera</span></output>
+              <button type="button" aria-label="Phóng to camera" title="Phóng to camera" disabled={cameraZoom.value >= cameraZoom.max} onClick={() => void adjustCameraZoom(1)}>+</button>
+            </div>}
+          </div>
         </>}
         {started && <button type="button" className="ar-stop-button ar-stop-button-floating" onClick={stopTracking}>Dừng camera</button>}
-        {started && cameraZoom && <div className="ar-camera-zoom" aria-label="Điều chỉnh mức thu phóng camera">
-          <button type="button" aria-label="Thu nhỏ camera" title="Thu nhỏ camera" disabled={cameraZoom.value <= cameraZoom.min} onClick={() => void adjustCameraZoom(-1)}>−</button>
-          <output aria-live="polite">{cameraZoom.value.toFixed(1)}× <span>thu phóng</span></output>
-          <button type="button" aria-label="Phóng to camera" title="Phóng to camera" disabled={cameraZoom.value >= cameraZoom.max} onClick={() => void adjustCameraZoom(1)}>+</button>
-        </div>}
       </div>
-      {!started && <button className="ar-start-button" onClick={() => void startTracking()}>Mở camera & quét ảnh sản phẩm</button>}
       <div className="ar-customer-guide">
         <strong>Cách sử dụng</strong>
         <ol><li>Bấm nút mở camera và cho phép truy cập camera.</li><li>Hướng camera vào một trong các ảnh mục tiêu bên dưới.</li><li>Khi nhận diện thành công, mô hình sẽ xuất hiện và bám theo ảnh trong khung hình.</li></ol>
