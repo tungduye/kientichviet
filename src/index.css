@@ -2394,7 +2394,9 @@ h2 { letter-spacing: -0.015em !important; }
 .ar-page-header p { margin: 0; color: #dbc8bb; }
 .ar-page-kicker { margin-top: 18px !important; color: #ffd18d !important; font-size: 11px; font-weight: 800; letter-spacing: 0.13em; text-transform: uppercase; }
 .ar-page-status { margin-top: 7px !important; line-height: 1.55; }
-.ar-camera-stage { position: relative; width: min(900px, 100%); height: min(72dvh, 720px); margin: auto; overflow: hidden; border: 1px solid #ffd18d55; border-radius: 18px; background: #000; }
+.ar-camera-stage { position: relative; isolation: isolate; width: min(900px, 100%); height: min(72dvh, 720px); margin: auto; overflow: hidden; border: 1px solid #ffd18d55; border-radius: 18px; background: #000; }
+.ar-camera-stage > video { z-index: 0 !important; max-width: none; }
+.ar-camera-stage > canvas { z-index: 1; }
 .ar-start-button { display: block; min-height: 50px; margin: 18px auto 8px; padding: 13px 24px; border-radius: 999px; color: #351b18; background: #ffd18d; font-weight: 800; box-shadow: 0 10px 26px rgba(0, 0, 0, 0.32); }
 .ar-stop-button { display: block; margin: 18px auto 8px; padding: 12px 20px; border: 1px solid #ffd18d99; border-radius: 999px; color: #fff8ee; background: #740018; font-weight: 800; }
 .product-ar-link { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; color: var(--red); font-size: 13px; font-weight: 800; text-decoration: underline; text-underline-offset: 4px; }
