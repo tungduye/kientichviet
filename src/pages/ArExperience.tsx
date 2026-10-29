@@ -17,6 +17,12 @@ const TRACKING_IMAGE_BY_PRODUCT: Record<string, string> = {
   p3: "/images/pho-hang-trong.jpg",
 }
 
+const THAP_RUA_ANGLE_IMAGES = [
+  { src: "/images/thap-rua-angle-front.jpg", label: "Mặt trước", alt: "Tháp Rùa mô hình nhìn chính diện" },
+  { src: "/images/thap-rua-angle-side.jpg", label: "Góc nghiêng", alt: "Tháp Rùa mô hình nhìn từ góc nghiêng" },
+  { src: "/images/thap-rua-angle-detail.jpg", label: "Chi tiết", alt: "Chi tiết các tầng của mô hình Tháp Rùa" },
+]
+
 type CameraZoom = { min: number; max: number; step: number; value: number }
 type CameraZoomCapabilities = MediaTrackCapabilities & { zoom?: { min: number; max: number; step: number } }
 
@@ -280,9 +286,19 @@ export default function ArExperience() {
       <div className="ar-customer-guide">
         <strong>Cách sử dụng</strong>
         <ol><li>Bấm nút mở camera và cho phép truy cập camera.</li><li>Hướng camera vào đúng ảnh nhận diện bên dưới.</li><li>Khi nhận diện thành công, mô hình sẽ xuất hiện và bám theo ảnh trong khung hình.</li></ol>
+        {productId === "p1" && <section className="ar-product-angle-gallery" aria-label="Ảnh các góc mô hình Tháp Rùa">
+          <h2>Các góc mô hình Tháp Rùa</h2>
+          <div className="ar-product-angle-grid">
+            {THAP_RUA_ANGLE_IMAGES.map((image) => <a key={image.src} href={image.src} target="_blank" rel="noreferrer" aria-label={`Mở ảnh lớn: ${image.label}`}>
+              <img src={image.src} alt={image.alt} loading="lazy" />
+              <span>{image.label}</span>
+            </a>)}
+          </div>
+          <p>Ảnh tham khảo sản phẩm đã lắp ghép, có thể bấm để xem cỡ lớn.</p>
+        </section>}
         {TRACKING_IMAGE_BY_PRODUCT[productId] && <figure className="ar-tracking-target">
           <img src={TRACKING_IMAGE_BY_PRODUCT[productId]} alt="Ảnh dùng để nhận diện sản phẩm trong camera AR" />
-          <figcaption>Ảnh cần quét: {productId === "p1" ? "Tháp Rùa" : "Phố Hàng Trống"}. Đưa camera vào ảnh này, không cần quét mô hình gỗ.<br /><a href={TRACKING_IMAGE_BY_PRODUCT[productId]} target="_blank" rel="noreferrer">Mở ảnh mục tiêu cỡ lớn</a></figcaption>
+          <figcaption><strong>Ảnh mục tiêu để quét AR: {productId === "p1" ? "Tháp Rùa" : "Phố Hàng Trống"}.</strong> Hướng camera vào ảnh này để kích hoạt AR. Bộ ảnh các góc phía trên chỉ dùng để xem sản phẩm; hiện camera chưa nhận diện trực tiếp mô hình gỗ.<br /><a href={TRACKING_IMAGE_BY_PRODUCT[productId]} target="_blank" rel="noreferrer">Mở ảnh mục tiêu cỡ lớn</a></figcaption>
         </figure>}
       </div>
       <p className="ar-privacy">Camera chỉ mở sau khi bạn bấm nút. Hình ảnh được xử lý trực tiếp trên thiết bị và không được tải lên máy chủ.</p>
