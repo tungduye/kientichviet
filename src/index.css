@@ -2404,6 +2404,8 @@ h2 { letter-spacing: -0.015em !important; }
 .ar-camera-stage > video { display: block !important; visibility: visible !important; object-fit: cover; }
 .ar-camera-wait { position: absolute; inset: 0; z-index: 2; display: grid; align-content: center; justify-items: center; gap: 10px; padding: 24px; color: #fff8ee; background: rgba(10, 5, 6, 0.68); text-align: center; }
 .ar-camera-wait small { max-width: 340px; color: #e6d6cc; line-height: 1.5; }
+.ar-target-overlay { position: absolute; top: 68px; left: 50%; z-index: 3; width: max-content; max-width: calc(100% - 28px); padding: 9px 14px; transform: translateX(-50%); border: 1px solid rgba(255, 209, 141, 0.48); border-radius: 999px; color: #fff8ee; background: rgba(22, 11, 13, 0.84); font-size: 12px; font-weight: 800; line-height: 1.4; text-align: center; backdrop-filter: blur(8px); pointer-events: none; }
+.ar-target-overlay.is-held { color: #351b18; background: rgba(255, 209, 141, 0.94); }
 .ar-model-scale { position: absolute; bottom: 16px; left: 50%; z-index: 3; display: grid; gap: 6px; width: min(300px, calc(100% - 24px)); padding: 10px 14px; transform: translateX(-50%); border: 1px solid rgba(255, 209, 141, 0.36); border-radius: 14px; color: #fff8ee; background: rgba(22, 11, 13, 0.82); backdrop-filter: blur(8px); }
 .ar-model-scale span { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; font-weight: 700; }
 .ar-model-scale output { color: #ffd18d; }

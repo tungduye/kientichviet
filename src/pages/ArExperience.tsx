@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { Link, useParams } from "react-router-dom"
-import { AmbientLight, DirectionalLight, type Group } from "three"
+import { AmbientLight, DirectionalLight, Matrix4, type Group } from "three"
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js"
 
 import { getArReadiness, type ArExperienceConfig } from "../features/ar/arConfig"
@@ -24,6 +24,8 @@ const THAP_RUA_ANGLE_IMAGES = [
 
 type CameraZoom = { min: number; max: number; step: number; value: number }
 type CameraZoomCapabilities = MediaTrackCapabilities & { zoom?: { min: number; max: number; step: number } }
+type TargetState = "searching" | "tracking" | "held"
+const INITIAL_MODEL_ZOOM = 3
 
 function getCameraErrorMessage(error: unknown): string {
   const name = error instanceof DOMException ? error.name : ""
@@ -72,7 +74,8 @@ export default function ArExperience() {
   const [cameraReady, setCameraReady] = useState(false)
   const [fullscreen, setFullscreen] = useState(false)
   const [cameraZoom, setCameraZoom] = useState<CameraZoom | null>(null)
-  const [modelZoom, setModelZoom] = useState(1)
+  const [modelZoom, setModelZoom] = useState(INITIAL_MODEL_ZOOM)
+  const [targetState, setTargetState] = useState<TargetState>("searching")
   const containerRef = useRef<HTMLDivElement>(null)
   const cameraShellRef = useRef<HTMLDivElement>(null)
   const activeRef = useRef(true)
@@ -111,12 +114,13 @@ export default function ArExperience() {
   const startTracking = async () => {
     if (!config?.targetUrl || !config.modelUrl || !containerRef.current) return
     const attempt = ++attemptRef.current
+    setTargetState("searching")
     setStarted(true); setStatus("Đang mở camera và tải mô hình…")
     try {
       const mindarModuleUrl = "/vendor/mindar/mindar-image-three.prod.js"
       const { MindARThree } = await import(/* @vite-ignore */ mindarModuleUrl)
       if (!activeRef.current || attempt !== attemptRef.current) return
-      const mindar = new MindARThree({ container: containerRef.current, imageTargetSrc: config.targetUrl, maxTrack: 1 })
+      const mindar = new MindARThree({ container: containerRef.current, imageTargetSrc: config.targetUrl, maxTrack: 1, missTolerance: 12, uiScanning: "no" })
       mindarRef.current = mindar
       mindar.renderer.domElement.style.zIndex = "1"
       mindar.renderer.domElement.style.inset = "0"
@@ -125,8 +129,33 @@ export default function ArExperience() {
       const targetLabels = productId === "p1" ? THAP_RUA_ANGLE_IMAGES.map((image) => image.label) : ["Phố Hàng Trống"]
       const anchors = targetLabels.map((label, index) => {
         const anchor = mindar.addAnchor(index)
-        anchor.onTargetFound = () => setStatus(`Đã nhận diện ảnh ${label} — mô hình đang bám theo camera.`)
-        anchor.onTargetLost = () => setStatus("Hãy đưa một trong các ảnh mục tiêu trở lại khung hình.")
+        const lastPose = new Matrix4()
+        let hasLastPose = false
+        anchor.onTargetUpdate = () => {
+          if (anchor.group.visible) {
+            lastPose.copy(anchor.group.matrix)
+            hasLastPose = true
+          }
+        }
+        anchor.onTargetFound = () => {
+          anchors.forEach((otherAnchor, otherIndex) => {
+            if (otherIndex !== index) otherAnchor.group.visible = false
+          })
+          setTargetState("tracking")
+          setStatus(`Đã nhận diện ảnh ${label} — mô hình đang bám theo ảnh.`)
+        }
+        anchor.onTargetLost = () => {
+          if (hasLastPose) {
+            anchor.group.matrix.copy(lastPose)
+            anchor.group.matrixWorldNeedsUpdate = true
+            anchor.group.visible = true
+            setTargetState("held")
+            setStatus("Ảnh mục tiêu đã khuất — mô hình được giữ tại vị trí nhìn cuối. Quét lại ảnh để tiếp tục bám theo.")
+          } else {
+            setTargetState("searching")
+            setStatus("Hướng camera vào một trong các ảnh mục tiêu để bắt đầu.")
+          }
+        }
         return anchor
       })
       mindar.scene.add(new AmbientLight(0xffffff, 2.1))
@@ -137,7 +166,7 @@ export default function ArExperience() {
       if (!activeRef.current || attempt !== attemptRef.current) { try { mindar.stop() } catch { /* Not started yet. */ } return }
       modelRefs.current = anchors.map(({ group }) => {
         const modelScene = model.scene.clone(true)
-        modelScene.scale.setScalar(config.scale)
+        modelScene.scale.setScalar(config.scale * INITIAL_MODEL_ZOOM)
         modelScene.position.set(config.offsetX, config.offsetY, config.offsetZ)
         modelScene.rotation.set(config.rotationX, config.rotationY, config.rotationZ)
         group.add(modelScene)
@@ -235,7 +264,8 @@ export default function ArExperience() {
     containerRef.current?.replaceChildren()
     setCameraReady(false)
     setCameraZoom(null)
-    setModelZoom(1)
+    setModelZoom(INITIAL_MODEL_ZOOM)
+    setTargetState("searching")
     setFullscreen(false)
     setStarted(false)
     setStatus("Camera đã dừng.")
@@ -271,10 +301,13 @@ export default function ArExperience() {
         <div ref={containerRef} className="ar-camera-stage" />
         {started && !cameraReady && <div className="ar-camera-wait" role="status">Đang bật camera và chờ hình ảnh…<small>Nếu màn hình vẫn đen, đóng ứng dụng khác đang dùng camera rồi thử lại.</small></div>}
         {started && <button type="button" className="ar-camera-fullscreen-button" aria-label={fullscreen ? "Thoát toàn màn hình" : "Phóng camera toàn màn hình"} onClick={() => void toggleFullscreen()}>{fullscreen ? "Thu nhỏ màn hình" : "Toàn màn hình"}</button>}
+        {started && cameraReady && targetState !== "tracking" && <div className={`ar-target-overlay${targetState === "held" ? " is-held" : ""}`} role="status">
+          {targetState === "held" ? "Ảnh khuất · mô hình giữ vị trí cuối" : "Hướng camera vào một ảnh mục tiêu"}
+        </div>}
         {started && cameraReady && <>
           <label className="ar-model-scale">
             <span>Phóng mô hình <output>{modelZoom.toFixed(1)}×</output></span>
-            <input aria-label="Phóng to hoặc thu nhỏ mô hình AR" type="range" min="0.5" max="2" step="0.1" value={modelZoom} onChange={(event) => {
+            <input aria-label="Phóng to hoặc thu nhỏ mô hình AR" type="range" min="0.5" max="8" step="0.1" value={modelZoom} onChange={(event) => {
               const next = Number(event.target.value)
               setModelZoom(next)
               modelRefs.current.forEach((model) => model.scale.setScalar((config?.scale ?? 1) * next))
