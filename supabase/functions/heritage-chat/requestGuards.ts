@@ -29,6 +29,7 @@ export function isAllowedOrigin(
     const hostname = url.hostname.toLowerCase()
     const officialHost =
       hostname === "kientichviet.com" || hostname.endsWith(".kientichviet.com")
+    const productionVercelHost = hostname === "kientichviet.vercel.app"
     const localHost = hostname === "localhost" || hostname === "127.0.0.1"
     const previewOrigins = new Set(
       allowedPreviewOrigins
@@ -39,6 +40,7 @@ export function isAllowedOrigin(
 
     return (
       (url.protocol === "https:" && officialHost) ||
+      (url.protocol === "https:" && productionVercelHost) ||
       previewOrigins.has(origin) ||
       ((url.protocol === "http:" || url.protocol === "https:") && localHost)
     )

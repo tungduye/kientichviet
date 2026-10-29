@@ -101,12 +101,19 @@ export default function Chatbox() {
 
   const speakReply = useCallback(
     async (reply: string) => {
-      if (!supportsVoiceOutput) return
+      if (!supportsVoiceOutput) {
+        setVoiceNotice("Trình duyệt này chưa hỗ trợ đọc câu trả lời bằng giọng nói.")
+        return
+      }
       const speechGeneration = ++speechGenerationRef.current
       window.speechSynthesis.cancel()
       setIsSpeaking(false)
       const voice = await waitForVietnameseVoice(window.speechSynthesis)
       if (speechGeneration !== speechGenerationRef.current) return
+      if (!voice) {
+        setVoiceNotice("Thiết bị chưa có giọng đọc tiếng Việt. Câu trả lời vẫn được hiển thị bằng chữ.")
+        return
+      }
 
       const utterance = new SpeechSynthesisUtterance(
         stripMarkdownForSpeech(reply),
@@ -124,8 +131,10 @@ export default function Chatbox() {
           setIsSpeaking(false)
       }
       utterance.onerror = () => {
-        if (speechGeneration === speechGenerationRef.current)
+        if (speechGeneration === speechGenerationRef.current) {
           setIsSpeaking(false)
+          setVoiceNotice("Trình duyệt chưa phát được giọng tiếng Việt. Câu trả lời vẫn có ở phần chữ.")
+        }
       }
       window.speechSynthesis.speak(utterance)
     },
@@ -238,7 +247,12 @@ export default function Chatbox() {
       if (finalText.trim()) void handleSend(finalText)
     }
     recognitionRef.current = recognition
-    recognition.start()
+    try {
+      recognition.start()
+    } catch {
+      setIsListening(false)
+      setVoiceNotice("Không mở được microphone. Anh/chị có thể nhập câu hỏi bằng chữ.")
+    }
   }
 
   const clearConversation = () => {

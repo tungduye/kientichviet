@@ -1,23 +1,44 @@
-import { useState, FormEvent } from "react"
+import { useState, type FormEvent } from "react"
 import { Icon, Logo } from "../Shared"
 import { Link } from "react-router-dom"
 import { toast } from "../Motion"
 import { useSiteContent } from "../../context/SiteContentContext"
+import { supabase } from "../../integrations/supabase/client"
 
 export default function Footer() {
   const { text } = useSiteContent()
   const [newsletterEmail, setNewsletterEmail] = useState("")
   const [isSubscribed, setIsSubscribed] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [subscribeError, setSubscribeError] = useState("")
 
-  const handleSubscribe = (event: FormEvent) => {
+  const handleSubscribe = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (!newsletterEmail.trim() || !newsletterEmail.includes("@")) {
+    const email = newsletterEmail.trim().toLowerCase()
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       toast("Vui lòng nhập địa chỉ email hợp lệ.")
       return
     }
-    setIsSubscribed(true)
-    toast("Cảm ơn bạn đã đăng ký nhận tin từ Kiến Tích Việt!")
-    setNewsletterEmail("")
+    setIsSubmitting(true)
+    setSubscribeError("")
+    try {
+      const { error } = await supabase
+        .from("newsletter_subscriptions")
+        .insert({ email })
+
+      if (error && error.code !== "23505") {
+        setSubscribeError("Chưa lưu được email. Anh/chị vui lòng thử lại sau.")
+        return
+      }
+
+      setIsSubscribed(true)
+      toast(error ? "Email này đã đăng ký nhận tin rồi." : "Cảm ơn anh/chị đã đăng ký nhận tin!")
+      setNewsletterEmail("")
+    } catch {
+      setSubscribeError("Chưa kết nối được máy chủ. Anh/chị vui lòng thử lại sau.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -75,7 +96,7 @@ export default function Footer() {
               <Icon name="sparkle" size={16} /> Đã ghi nhận đăng ký của bạn.
             </div>
           ) : (
-            <form onSubmit={handleSubscribe} autoComplete="off">
+            <form onSubmit={(event) => void handleSubscribe(event)} autoComplete="off">
               <input
                 aria-label="Email của bạn"
                 placeholder="Email của bạn"
@@ -87,11 +108,12 @@ export default function Footer() {
                 onChange={(e) => setNewsletterEmail(e.target.value)}
                 required
               />
-              <button aria-label="Đăng ký" type="submit">
+              <button aria-label="Đăng ký" type="submit" disabled={isSubmitting}>
                 <Icon name="arrow" />
               </button>
             </form>
           )}
+          {subscribeError && <p className="newsletter-error" role="alert">{subscribeError}</p>}
         </div>
       </div>
       <div className="footer-bottom reveal">

@@ -11,6 +11,7 @@ import {
 import { supabase } from "../integrations/supabase/client"
 import AdminContentEditor from "../components/admin/AdminContentEditor"
 import AdminArEditor from "../components/admin/AdminArEditor"
+import AdminReviews from "../components/admin/AdminReviews"
 
 interface EditorItem {
   key: string
@@ -343,7 +344,7 @@ export default function AdminCatalog() {
   const [checkingSession, setCheckingSession] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
   const [accessStatus, setAccessStatus] = useState("")
-  const [activeTab, setActiveTab] = useState<"products" | "content" | "ar">(
+  const [activeTab, setActiveTab] = useState<"products" | "content" | "ar" | "reviews">(
     "products",
   )
 
@@ -488,6 +489,12 @@ export default function AdminCatalog() {
         >
           Web AR
         </button>
+        <button
+          className={activeTab === "reviews" ? "active" : ""}
+          onClick={() => setActiveTab("reviews")}
+        >
+          Đánh giá
+        </button>
       </nav>
 
       {activeTab === "products" && error && (
@@ -514,6 +521,7 @@ export default function AdminCatalog() {
         ))}
       {activeTab === "content" && <AdminContentEditor user={user} />}
       {activeTab === "ar" && <AdminArEditor />}
+      {activeTab === "reviews" && <AdminReviews />}
     </main>
   )
 }

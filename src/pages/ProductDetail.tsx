@@ -463,6 +463,9 @@ export default function ProductDetail() {
               </span>
             </div>
           </div>
+          <p className="nfc-fallback-copy">
+            Không dùng được NFC? <Link to={`/heritage/${product.slug}`}>Mở câu chuyện di sản tại đây</Link>.
+          </p>
           <LinkButton href={`/heritage/${product.slug}`} dark>
             Khám phá trải nghiệm số
           </LinkButton>

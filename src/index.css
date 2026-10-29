@@ -2399,11 +2399,23 @@ h2 { letter-spacing: -0.015em !important; }
 .ar-camera-shell .ar-camera-stage { width: 100%; height: 100%; max-height: none; margin: 0; }
 .ar-camera-stage > video { z-index: 0 !important; max-width: none; }
 .ar-camera-stage > canvas { z-index: 1; }
+.ar-camera-stage > video,
+.ar-camera-stage > canvas { position: absolute !important; inset: 0; width: 100% !important; height: 100% !important; }
+.ar-camera-stage > video { display: block !important; visibility: visible !important; object-fit: cover; }
+.ar-camera-wait { position: absolute; inset: 0; z-index: 2; display: grid; align-content: center; justify-items: center; gap: 10px; padding: 24px; color: #fff8ee; background: rgba(10, 5, 6, 0.68); text-align: center; }
+.ar-camera-wait small { max-width: 340px; color: #e6d6cc; line-height: 1.5; }
+.ar-model-scale { position: absolute; bottom: 16px; left: 50%; z-index: 3; display: grid; gap: 6px; width: min(300px, calc(100% - 24px)); padding: 10px 14px; transform: translateX(-50%); border: 1px solid rgba(255, 209, 141, 0.36); border-radius: 14px; color: #fff8ee; background: rgba(22, 11, 13, 0.82); backdrop-filter: blur(8px); }
+.ar-model-scale span { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; font-weight: 700; }
+.ar-model-scale output { color: #ffd18d; }
+.ar-model-scale input { width: 100%; accent-color: #ffd18d; }
+.ar-stop-button-floating { position: absolute; top: 12px; left: 12px; z-index: 3; margin: 0; min-height: 44px; }
 .ar-camera-shell.is-fullscreen { position: fixed; inset: 0; z-index: 1000; width: 100vw; height: 100dvh; max-width: none; margin: 0; background: #000; }
 .ar-camera-shell.is-fullscreen .ar-camera-stage { min-height: 0; border: 0; border-radius: 0; }
 .ar-camera-fullscreen-button { position: absolute; top: 12px; right: 12px; z-index: 3; min-height: 44px; padding: 9px 13px; border: 1px solid rgba(255, 209, 141, 0.58); border-radius: 999px; color: #fff8ee; background: rgba(22, 11, 13, 0.78); font-size: 12px; font-weight: 800; backdrop-filter: blur(8px); }
 .ar-camera-fullscreen-button:focus-visible { outline: 3px solid #ffd18d; outline-offset: 3px; }
 .ar-camera-zoom { position: absolute; bottom: 16px; left: 50%; z-index: 3; display: flex; align-items: center; justify-content: center; gap: 14px; width: max-content; max-width: calc(100% - 24px); margin: 0; padding: 7px 10px; transform: translateX(-50%); border: 1px solid rgba(255, 209, 141, 0.36); border-radius: 999px; background: rgba(22, 11, 13, 0.78); backdrop-filter: blur(8px); }
+.ar-camera-shell.has-model-scale.has-camera-zoom .ar-camera-zoom { bottom: 92px; }
+.ar-camera-shell.has-camera-zoom .ar-model-scale { left: 12px; transform: none; }
 .ar-camera-zoom button { width: 44px; height: 44px; border: 1px solid rgba(255, 209, 141, 0.52); border-radius: 50%; color: #351b18; background: #ffd18d; font-size: 24px; font-weight: 700; line-height: 1; }
 .ar-camera-zoom button:disabled { cursor: not-allowed; opacity: 0.42; }
 .ar-camera-zoom button:focus-visible { outline: 3px solid #fff8ee; outline-offset: 3px; }
@@ -2411,6 +2423,33 @@ h2 { letter-spacing: -0.015em !important; }
 .ar-camera-zoom output span { display: block; color: #dbc8bb; font-size: 10px; font-weight: 500; }
 .ar-start-button { display: block; min-height: 50px; margin: 18px auto 8px; padding: 13px 24px; border-radius: 999px; color: #351b18; background: #ffd18d; font-weight: 800; box-shadow: 0 10px 26px rgba(0, 0, 0, 0.32); }
 .ar-stop-button { display: block; margin: 18px auto 8px; padding: 12px 20px; border: 1px solid #ffd18d99; border-radius: 999px; color: #fff8ee; background: #740018; font-weight: 800; }
+.nfc-fallback-copy { margin: 14px 0; color: #e7d5c6; font-size: 13px; line-height: 1.6; }
+.nfc-fallback-copy a { color: #ffd18d; font-weight: 800; text-underline-offset: 3px; }
+.admin-reviews { display: grid; gap: 18px; margin-top: 24px; }
+.admin-reviews-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.admin-reviews-heading h2 { margin: 4px 0; color: var(--red); font-family: "Vollkorn", serif; }
+.admin-reviews-heading p { margin: 4px 0; color: #755d53; }
+.admin-reviews-heading button,
+.admin-review-actions button { min-height: 40px; padding: 9px 14px; border: 1px solid #d7b7a7; border-radius: 8px; color: var(--red); background: #fffaf4; font-weight: 700; }
+.admin-review-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 14px; }
+.admin-review-card { display: grid; gap: 12px; padding: 18px; border: 1px solid #e7d3c6; border-radius: 14px; background: #fffaf4; }
+.admin-review-card > p { margin: 0; line-height: 1.6; white-space: pre-wrap; }
+.admin-review-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; color: #6b5148; font-size: 12px; }
+.admin-review-meta strong { color: #381e19; font-size: 14px; }
+.admin-review-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 10px; border-top: 1px solid #eee0d7; }
+.admin-review-actions .is-published { color: #27734d; font-size: 12px; font-weight: 700; }
+.admin-review-actions .is-pending { color: #a1640a; font-size: 12px; font-weight: 700; }
+.admin-review-empty { padding: 22px; border: 1px dashed #d7b7a7; border-radius: 12px; color: #755d53; text-align: center; }
+.admin-review-status { color: #27734d; }
+.newsletter-error { margin: 8px 0 0; color: #ffd18d; font-size: 12px; }
+
+@media (max-width: 560px) {
+  .admin-reviews-heading { align-items: flex-start; flex-direction: column; }
+  .admin-review-meta { align-items: flex-start; flex-direction: column; gap: 5px; }
+  .admin-review-actions { align-items: flex-start; flex-direction: column; }
+  .ar-camera-shell.has-model-scale.has-camera-zoom .ar-camera-zoom { right: 12px; left: auto; transform: none; }
+  .ar-camera-shell.has-camera-zoom .ar-model-scale { width: min(250px, calc(100% - 24px)); }
+}
 .product-ar-link { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; color: var(--red); font-size: 13px; font-weight: 800; text-decoration: underline; text-underline-offset: 4px; }
 .ar-privacy, .ar-fallback > p, .ar-empty { max-width: 760px; margin: 12px auto; color: #dbc8bb; text-align: center; }
 .ar-fallback { width: min(900px, 100%); min-height: 620px; margin: auto; }

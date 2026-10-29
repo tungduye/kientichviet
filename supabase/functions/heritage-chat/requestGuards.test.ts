@@ -7,7 +7,15 @@ import {
 } from "./requestGuards"
 
 describe("heritage chat request guards", () => {
-  it("allows only the official hostname, its subdomains and local development", () => {
+  it("allows the production hostname, its subdomains and local development", () => {
+    expect(
+      getCorsHeaders(
+        new Request("https://edge.test", {
+          headers: { origin: "https://kientichviet.vercel.app" },
+        }),
+      )["Access-Control-Allow-Origin"],
+    ).toBe("https://kientichviet.vercel.app")
+
     expect(
       getCorsHeaders(
         new Request("https://edge.test", {

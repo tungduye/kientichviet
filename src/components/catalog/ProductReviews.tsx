@@ -84,28 +84,32 @@ export default function ProductReviews({ productId }: { productId: string }) {
     }
 
     setSubmitting(true)
-    const { data, error } = await supabase
-      .from("product_reviews")
-      .insert({
-        product_id: productId,
-        customer_name: cleanName,
-        rating,
-        body: cleanBody,
-      })
-      .select(REVIEW_FIELDS)
-      .single()
+    let submitError: string | null = null
+    try {
+      const { error } = await supabase
+        .from("product_reviews")
+        .insert({
+          product_id: productId,
+          customer_name: cleanName,
+          rating,
+          body: cleanBody,
+        })
+      submitError = error?.message ?? null
+    } catch {
+      submitError = "network"
+    } finally {
+      setSubmitting(false)
+    }
 
-    setSubmitting(false)
-    if (error || !data) {
+    if (submitError) {
       setSubmitError("Chưa gửi được đánh giá. Vui lòng thử lại sau.")
       return
     }
 
-    setReviews((current) => [data as ProductReview, ...current])
     setCustomerName("")
     setRating(5)
     setBody("")
-    setSubmitMessage("Cảm ơn anh/chị đã chia sẻ trải nghiệm về sản phẩm.")
+    setSubmitMessage("Đã nhận đánh giá. Nội dung sẽ hiển thị sau khi được duyệt.")
   }
 
   const averageRating = reviews.length
