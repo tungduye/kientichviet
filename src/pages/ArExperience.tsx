@@ -17,14 +17,19 @@ const TRACKING_IMAGE_BY_PRODUCT: Record<string, string> = {
   p3: "/images/pho-hang-trong.jpg",
 }
 
+type CameraZoom = { min: number; max: number; step: number; value: number }
+type CameraZoomCapabilities = MediaTrackCapabilities & { zoom?: { min: number; max: number; step: number } }
+
 export default function ArExperience() {
   const { productId = "" } = useParams()
   const [config, setConfig] = useState<ArExperienceConfig | null>(null)
   const [status, setStatus] = useState("Đang tải cấu hình AR…")
   const [started, setStarted] = useState(false)
+  const [cameraZoom, setCameraZoom] = useState<CameraZoom | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const activeRef = useRef(true)
   const attemptRef = useRef(0)
+  const zoomTrackRef = useRef<MediaStreamTrack | null>(null)
   const mindarRef = useRef<{ stop: () => void; renderer: { setAnimationLoop: (callback: null | (() => void)) => void } } | null>(null)
 
   useEffect(() => {
@@ -69,13 +74,45 @@ export default function ArExperience() {
       anchor.onTargetLost = () => setStatus("Hãy đưa ảnh mục tiêu trở lại khung hình.")
       await mindar.start()
       if (!activeRef.current || attempt !== attemptRef.current) { mindar.stop(); return }
+      const videoTrack = (mindar.video as HTMLVideoElement | undefined)?.srcObject instanceof MediaStream
+        ? ((mindar.video as HTMLVideoElement).srcObject as MediaStream).getVideoTracks()[0]
+        : undefined
+      const zoom = videoTrack?.getCapabilities?.() as CameraZoomCapabilities | undefined
+      if (videoTrack && zoom?.zoom && zoom.zoom.max > zoom.zoom.min) {
+        const settings = videoTrack.getSettings()
+        zoomTrackRef.current = videoTrack
+        setCameraZoom({
+          min: zoom.zoom.min,
+          max: zoom.zoom.max,
+          step: zoom.zoom.step || 0.1,
+          value: settings.zoom ?? zoom.zoom.min,
+        })
+      } else {
+        zoomTrackRef.current = null
+        setCameraZoom(null)
+      }
       mindar.renderer.setAnimationLoop(() => mindar.renderer.render(mindar.scene, mindar.camera))
       setStatus("Đưa camera hướng vào ảnh mục tiêu.")
     } catch (error) {
       try { mindarRef.current?.renderer.setAnimationLoop(null); mindarRef.current?.stop() } catch { /* Camera may not have finished starting. */ }
       mindarRef.current = null
+      zoomTrackRef.current = null
+      setCameraZoom(null)
       setStarted(false)
       setStatus(error instanceof Error ? `Không thể mở AR: ${error.message}` : "Không thể mở AR. Hãy kiểm tra quyền camera.")
+    }
+  }
+
+  const adjustCameraZoom = async (direction: -1 | 1) => {
+    const track = zoomTrackRef.current
+    if (!track || !cameraZoom) return
+    const next = Number(Math.max(cameraZoom.min, Math.min(cameraZoom.max, cameraZoom.value + cameraZoom.step * direction)).toFixed(3))
+    if (next === cameraZoom.value) return
+    try {
+      await track.applyConstraints({ advanced: [{ zoom: next } as MediaTrackConstraintSet] })
+      setCameraZoom((current) => current ? { ...current, value: track.getSettings().zoom ?? next } : current)
+    } catch {
+      setStatus("Không thể đổi mức thu phóng trên camera này.")
     }
   }
 
@@ -83,7 +120,9 @@ export default function ArExperience() {
     attemptRef.current += 1
     try { mindarRef.current?.renderer.setAnimationLoop(null); mindarRef.current?.stop() } catch { /* Camera may already be stopped. */ }
     mindarRef.current = null
+    zoomTrackRef.current = null
     containerRef.current?.replaceChildren()
+    setCameraZoom(null)
     setStarted(false)
     setStatus("Camera đã dừng.")
   }
@@ -98,6 +137,11 @@ export default function ArExperience() {
     </header>
     {readiness?.ready && readiness.mode === "image-tracking" && <>
       <div ref={containerRef} className="ar-camera-stage" />
+      {started && cameraZoom && <div className="ar-camera-zoom" aria-label="Điều chỉnh mức thu phóng camera">
+        <button type="button" aria-label="Thu nhỏ camera" title="Thu nhỏ camera" disabled={cameraZoom.value <= cameraZoom.min} onClick={() => void adjustCameraZoom(-1)}>−</button>
+        <output aria-live="polite">{cameraZoom.value.toFixed(1)}× <span>thu phóng</span></output>
+        <button type="button" aria-label="Phóng to camera" title="Phóng to camera" disabled={cameraZoom.value >= cameraZoom.max} onClick={() => void adjustCameraZoom(1)}>+</button>
+      </div>}
       {!started && <button className="ar-start-button" onClick={() => void startTracking()}>Mở camera & quét ảnh sản phẩm</button>}
       {started && <button className="ar-stop-button" onClick={stopTracking}>Dừng camera</button>}
       <div className="ar-customer-guide">
@@ -105,7 +149,7 @@ export default function ArExperience() {
         <ol><li>Bấm nút mở camera và cho phép truy cập camera.</li><li>Hướng camera vào đúng ảnh nhận diện bên dưới.</li><li>Khi nhận diện thành công, mô hình sẽ xuất hiện và bám theo ảnh trong khung hình.</li></ol>
         {TRACKING_IMAGE_BY_PRODUCT[productId] && <figure className="ar-tracking-target">
           <img src={TRACKING_IMAGE_BY_PRODUCT[productId]} alt="Ảnh dùng để nhận diện sản phẩm trong camera AR" />
-          <figcaption>Ảnh nhận diện — có thể mở ảnh này trên thiết bị khác hoặc dùng ảnh in trên hộp sản phẩm.</figcaption>
+          <figcaption>Ảnh cần quét: {productId === "p1" ? "Tháp Rùa" : "Phố Hàng Trống"}. Đưa camera vào ảnh này, không cần quét mô hình gỗ.<br /><a href={TRACKING_IMAGE_BY_PRODUCT[productId]} target="_blank" rel="noreferrer">Mở ảnh mục tiêu cỡ lớn</a></figcaption>
         </figure>}
       </div>
       <p className="ar-privacy">Camera chỉ mở sau khi bạn bấm nút. Hình ảnh được xử lý trực tiếp trên thiết bị và không được tải lên máy chủ.</p>

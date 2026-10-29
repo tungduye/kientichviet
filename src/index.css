@@ -2397,6 +2397,12 @@ h2 { letter-spacing: -0.015em !important; }
 .ar-camera-stage { position: relative; isolation: isolate; width: min(900px, 100%); height: min(72dvh, 720px); margin: auto; overflow: hidden; border: 1px solid #ffd18d55; border-radius: 18px; background: #000; }
 .ar-camera-stage > video { z-index: 0 !important; max-width: none; }
 .ar-camera-stage > canvas { z-index: 1; }
+.ar-camera-zoom { display: flex; align-items: center; justify-content: center; gap: 14px; width: max-content; max-width: 100%; margin: 12px auto 0; padding: 7px 10px; border: 1px solid rgba(255, 209, 141, 0.36); border-radius: 999px; background: rgba(255, 248, 238, 0.08); }
+.ar-camera-zoom button { width: 44px; height: 44px; border: 1px solid rgba(255, 209, 141, 0.52); border-radius: 50%; color: #351b18; background: #ffd18d; font-size: 24px; font-weight: 700; line-height: 1; }
+.ar-camera-zoom button:disabled { cursor: not-allowed; opacity: 0.42; }
+.ar-camera-zoom button:focus-visible { outline: 3px solid #fff8ee; outline-offset: 3px; }
+.ar-camera-zoom output { min-width: 100px; color: #fff8ee; font-weight: 800; text-align: center; }
+.ar-camera-zoom output span { display: block; color: #dbc8bb; font-size: 10px; font-weight: 500; }
 .ar-start-button { display: block; min-height: 50px; margin: 18px auto 8px; padding: 13px 24px; border-radius: 999px; color: #351b18; background: #ffd18d; font-weight: 800; box-shadow: 0 10px 26px rgba(0, 0, 0, 0.32); }
 .ar-stop-button { display: block; margin: 18px auto 8px; padding: 12px 20px; border: 1px solid #ffd18d99; border-radius: 999px; color: #fff8ee; background: #740018; font-weight: 800; }
 .product-ar-link { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; color: var(--red); font-size: 13px; font-weight: 800; text-decoration: underline; text-underline-offset: 4px; }
@@ -2414,6 +2420,7 @@ h2 { letter-spacing: -0.015em !important; }
 .ar-tracking-target { display: grid; grid-template-columns: 104px 1fr; align-items: center; gap: 14px; margin: 16px 0 0; padding-top: 14px; border-top: 1px solid rgba(255, 209, 141, 0.18); }
 .ar-tracking-target img { width: 104px; aspect-ratio: 4 / 3; object-fit: cover; border: 1px solid rgba(255, 209, 141, 0.35); border-radius: 8px; }
 .ar-tracking-target figcaption { color: #dbc8bb; font-size: 12px; line-height: 1.55; }
+.ar-tracking-target figcaption a { display: inline-block; margin-top: 6px; color: #ffd18d; font-weight: 700; text-underline-offset: 3px; }
 .ar-empty { padding: 60px 20px; border: 1px dashed #ffd18d55; border-radius: 18px; }
 .heritage-ar-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 10px; }
 .heritage-ar-camera-link,
