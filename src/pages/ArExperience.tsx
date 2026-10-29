@@ -13,7 +13,6 @@ const IOS_MODEL_BY_PRODUCT: Record<string, string> = {
 }
 
 const TRACKING_IMAGE_BY_PRODUCT: Record<string, string> = {
-  p1: "/images/thap-rua.jpg",
   p3: "/images/pho-hang-trong.jpg",
 }
 
@@ -79,7 +78,7 @@ export default function ArExperience() {
   const activeRef = useRef(true)
   const attemptRef = useRef(0)
   const zoomTrackRef = useRef<MediaStreamTrack | null>(null)
-  const modelRef = useRef<Group | null>(null)
+  const modelRefs = useRef<Group[]>([])
   const pendingStartRef = useRef<Promise<void> | null>(null)
 
   useEffect(() => {
@@ -123,20 +122,27 @@ export default function ArExperience() {
       mindar.renderer.domElement.style.inset = "0"
       mindar.renderer.domElement.style.width = "100%"
       mindar.renderer.domElement.style.height = "100%"
-      const anchor = mindar.addAnchor(0)
+      const targetLabels = productId === "p1" ? THAP_RUA_ANGLE_IMAGES.map((image) => image.label) : ["Phố Hàng Trống"]
+      const anchors = targetLabels.map((label, index) => {
+        const anchor = mindar.addAnchor(index)
+        anchor.onTargetFound = () => setStatus(`Đã nhận diện ảnh ${label} — mô hình đang bám theo camera.`)
+        anchor.onTargetLost = () => setStatus("Hãy đưa một trong các ảnh mục tiêu trở lại khung hình.")
+        return anchor
+      })
       mindar.scene.add(new AmbientLight(0xffffff, 2.1))
       const keyLight = new DirectionalLight(0xffffff, 2.6)
       keyLight.position.set(1, 2, 1)
       mindar.scene.add(keyLight)
       const model = await new GLTFLoader().loadAsync(config.modelUrl)
       if (!activeRef.current || attempt !== attemptRef.current) { try { mindar.stop() } catch { /* Not started yet. */ } return }
-      model.scene.scale.setScalar(config.scale)
-      model.scene.position.set(config.offsetX, config.offsetY, config.offsetZ)
-      model.scene.rotation.set(config.rotationX, config.rotationY, config.rotationZ)
-      modelRef.current = model.scene
-      anchor.group.add(model.scene)
-      anchor.onTargetFound = () => setStatus("Đã nhận diện mục tiêu — mô hình đang bám theo camera.")
-      anchor.onTargetLost = () => setStatus("Hãy đưa ảnh mục tiêu trở lại khung hình.")
+      modelRefs.current = anchors.map(({ group }) => {
+        const modelScene = model.scene.clone(true)
+        modelScene.scale.setScalar(config.scale)
+        modelScene.position.set(config.offsetX, config.offsetY, config.offsetZ)
+        modelScene.rotation.set(config.rotationX, config.rotationY, config.rotationZ)
+        group.add(modelScene)
+        return modelScene
+      })
       const startPromise: Promise<void> = mindar.start()
       pendingStartRef.current = startPromise
       let startTimeout = 0
@@ -194,7 +200,7 @@ export default function ArExperience() {
       mindarRef.current = null
       pendingStartRef.current = null
       zoomTrackRef.current = null
-      modelRef.current = null
+      modelRefs.current = []
       setCameraReady(false)
       setCameraZoom(null)
       setStarted(false)
@@ -225,7 +231,7 @@ export default function ArExperience() {
     mindarRef.current = null
     pendingStartRef.current = null
     zoomTrackRef.current = null
-    modelRef.current = null
+    modelRefs.current = []
     containerRef.current?.replaceChildren()
     setCameraReady(false)
     setCameraZoom(null)
@@ -271,7 +277,7 @@ export default function ArExperience() {
             <input aria-label="Phóng to hoặc thu nhỏ mô hình AR" type="range" min="0.5" max="2" step="0.1" value={modelZoom} onChange={(event) => {
               const next = Number(event.target.value)
               setModelZoom(next)
-              modelRef.current?.scale.setScalar((config?.scale ?? 1) * next)
+              modelRefs.current.forEach((model) => model.scale.setScalar((config?.scale ?? 1) * next))
             }} />
           </label>
         </>}
@@ -285,20 +291,20 @@ export default function ArExperience() {
       {!started && <button className="ar-start-button" onClick={() => void startTracking()}>Mở camera & quét ảnh sản phẩm</button>}
       <div className="ar-customer-guide">
         <strong>Cách sử dụng</strong>
-        <ol><li>Bấm nút mở camera và cho phép truy cập camera.</li><li>Hướng camera vào đúng ảnh nhận diện bên dưới.</li><li>Khi nhận diện thành công, mô hình sẽ xuất hiện và bám theo ảnh trong khung hình.</li></ol>
+        <ol><li>Bấm nút mở camera và cho phép truy cập camera.</li><li>Hướng camera vào một trong các ảnh mục tiêu bên dưới.</li><li>Khi nhận diện thành công, mô hình sẽ xuất hiện và bám theo ảnh trong khung hình.</li></ol>
         {productId === "p1" && <section className="ar-product-angle-gallery" aria-label="Ảnh các góc mô hình Tháp Rùa">
-          <h2>Các góc mô hình Tháp Rùa</h2>
+          <h2>Ảnh mục tiêu AR Tháp Rùa</h2>
           <div className="ar-product-angle-grid">
             {THAP_RUA_ANGLE_IMAGES.map((image) => <a key={image.src} href={image.src} target="_blank" rel="noreferrer" aria-label={`Mở ảnh lớn: ${image.label}`}>
               <img src={image.src} alt={image.alt} loading="lazy" />
               <span>{image.label}</span>
             </a>)}
           </div>
-          <p>Ảnh tham khảo sản phẩm đã lắp ghép, có thể bấm để xem cỡ lớn.</p>
+          <p>Cả ba ảnh đều quét được. Mở ảnh trên thiết bị khác hoặc in ra giấy, rồi hướng camera vào ảnh.</p>
         </section>}
         {TRACKING_IMAGE_BY_PRODUCT[productId] && <figure className="ar-tracking-target">
           <img src={TRACKING_IMAGE_BY_PRODUCT[productId]} alt="Ảnh dùng để nhận diện sản phẩm trong camera AR" />
-          <figcaption><strong>Ảnh mục tiêu để quét AR: {productId === "p1" ? "Tháp Rùa" : "Phố Hàng Trống"}.</strong> Hướng camera vào ảnh này để kích hoạt AR. Bộ ảnh các góc phía trên chỉ dùng để xem sản phẩm; hiện camera chưa nhận diện trực tiếp mô hình gỗ.<br /><a href={TRACKING_IMAGE_BY_PRODUCT[productId]} target="_blank" rel="noreferrer">Mở ảnh mục tiêu cỡ lớn</a></figcaption>
+          <figcaption><strong>Ảnh mục tiêu để quét AR: Phố Hàng Trống.</strong> Hướng camera vào ảnh này để kích hoạt AR.<br /><a href={TRACKING_IMAGE_BY_PRODUCT[productId]} target="_blank" rel="noreferrer">Mở ảnh mục tiêu cỡ lớn</a></figcaption>
         </figure>}
       </div>
       <p className="ar-privacy">Camera chỉ mở sau khi bạn bấm nút. Hình ảnh được xử lý trực tiếp trên thiết bị và không được tải lên máy chủ.</p>
