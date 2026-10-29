@@ -15,10 +15,8 @@
   "dependencies": {
     "@google/model-viewer": "^4.3.1",
     "@supabase/supabase-js": "^2.117.3",
-    "@tensorflow/tfjs": "4.16.0",
     "framer-motion": "^14.0.0",
     "lucide-react": "^1.52.0",
-    "mind-ar": "^1.2.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",

@@ -49,7 +49,8 @@ export default function ArExperience() {
     const attempt = ++attemptRef.current
     setStarted(true); setStatus("Đang mở camera và tải mô hình…")
     try {
-      const { MindARThree } = await import("mind-ar/dist/mindar-image-three.prod.js")
+      const mindarModuleUrl = "/vendor/mindar/mindar-image-three.prod.js"
+      const { MindARThree } = await import(/* @vite-ignore */ mindarModuleUrl)
       if (!activeRef.current || attempt !== attemptRef.current) return
       const mindar = new MindARThree({ container: containerRef.current, imageTargetSrc: config.targetUrl, maxTrack: 1 })
       mindarRef.current = mindar
