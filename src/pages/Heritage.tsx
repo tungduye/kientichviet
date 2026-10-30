@@ -480,6 +480,7 @@ export default function Heritage() {
           >
             {/* Column Left (55%): Deep Narrative, Ancient Chronicles & Architecture */}
             <div
+              className="heritage-story-column"
               style={{ display: "flex", flexDirection: "column", gap: "32px" }}
             >
               {/* Ancient Chronicle Quote Block */}
@@ -919,10 +920,12 @@ export default function Heritage() {
 
             {/* Column Right (45%): Wooden Model Craft & AR Experience */}
             <div
+              className="heritage-experience-column"
               style={{ display: "flex", flexDirection: "column", gap: "35px" }}
             >
               {/* Product Card: Royal Deep Lacquer Ruby (Refined, no harsh red) */}
               <div
+                className="heritage-product-panel"
                 style={{
                   background:
                     "linear-gradient(145deg, #380e15 0%, #220a0e 100%)",
@@ -1092,6 +1095,8 @@ export default function Heritage() {
 
               {/* AR 3D Experience Portal Card */}
               <div
+                id="ar-experience"
+                className="heritage-ar-panel"
                 style={{
                   background:
                     "linear-gradient(145deg, #201215 0%, #15090b 100%)",

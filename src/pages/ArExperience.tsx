@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react"
 import { Link, useParams } from "react-router-dom"
-import { AmbientLight, Box3, DirectionalLight, Matrix4, Raycaster, Vector2, Vector3, type Camera, type Group } from "three"
+import { AmbientLight, Box3, DirectionalLight, Matrix4, Quaternion, Raycaster, Scene, Vector2, Vector3, type Camera, type Group } from "three"
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js"
 
 import { getArReadiness, type ArExperienceConfig } from "../features/ar/arConfig"
@@ -25,9 +25,69 @@ const THAP_RUA_ANGLE_IMAGES = [
 type CameraZoom = { min: number; max: number; step: number; value: number }
 type CameraZoomCapabilities = MediaTrackCapabilities & { zoom?: { min: number; max: number; step: number } }
 type TargetState = "searching" | "tracking" | "held"
-const INITIAL_MODEL_ZOOM = 1.25
+type MindARAnchor = { group: Group; onTargetUpdate?: () => void; onTargetFound?: () => void; onTargetLost?: () => void }
+type MindARRuntime = {
+  camera: Camera
+  renderer: {
+    domElement: HTMLCanvasElement
+    setPixelRatio: (ratio: number) => void
+    setAnimationLoop: (callback: null | (() => void)) => void
+    render: (scene: Scene, camera: Camera) => void
+  }
+  scene: Scene
+  video?: HTMLVideoElement
+  addAnchor: (targetIndex: number) => MindARAnchor
+  start: () => Promise<void>
+  stop: () => void
+}
+type MindARThreeConstructor = new (options: {
+  container: HTMLElement
+  imageTargetSrc: string
+  maxTrack: number
+  filterMinCF: number
+  filterBeta: number
+  missTolerance: number
+  uiScanning: string
+}) => MindARRuntime
+type MindARWindow = Window & { MINDAR?: { IMAGE?: { MindARThree?: MindARThreeConstructor } } }
+
+let mindARThreeLoader: Promise<MindARThreeConstructor> | null = null
+
+function loadMindARThree(): Promise<MindARThreeConstructor> {
+  const mindARWindow = window as MindARWindow
+  const loadedConstructor = mindARWindow.MINDAR?.IMAGE?.MindARThree
+  if (loadedConstructor) return Promise.resolve(loadedConstructor)
+  if (mindARThreeLoader) return mindARThreeLoader
+
+  mindARThreeLoader = new Promise((resolve, reject) => {
+    const script = document.createElement("script")
+    script.type = "module"
+    script.src = "/vendor/mindar/mindar-image-three.prod.js"
+    script.dataset.mindarImageThree = "true"
+    script.onload = () => {
+      const constructor = mindARWindow.MINDAR?.IMAGE?.MindARThree
+      if (!constructor) {
+        mindARThreeLoader = null
+        reject(new Error("Không tìm thấy thư viện nhận diện ảnh MindAR."))
+        return
+      }
+      resolve(constructor)
+    }
+    script.onerror = () => {
+      script.remove()
+      mindARThreeLoader = null
+      reject(new Error("Không tải được thư viện AR. Hãy tải lại trang rồi thử lại."))
+    }
+    document.head.appendChild(script)
+  })
+
+  return mindARThreeLoader
+}
+
+const INITIAL_MODEL_ZOOM = 2.5
+const MODEL_TARGET_HEIGHT_MULTIPLIER = 3
 const MIN_MODEL_ZOOM = 0.5
-const MAX_MODEL_ZOOM = 3
+const MAX_MODEL_ZOOM = 5
 
 function getCameraErrorMessage(error: unknown): string {
   const name = error instanceof DOMException ? error.name : ""
@@ -95,7 +155,7 @@ export default function ArExperience() {
     document.addEventListener("fullscreenchange", syncFullscreen)
     return () => document.removeEventListener("fullscreenchange", syncFullscreen)
   }, [])
-  const mindarRef = useRef<{ stop: () => void; camera: Camera; renderer: { domElement: HTMLCanvasElement; setAnimationLoop: (callback: null | (() => void)) => void } } | null>(null)
+  const mindarRef = useRef<MindARRuntime | null>(null)
 
   const beginModelRotation = (event: ReactPointerEvent<HTMLDivElement>) => {
     const mindar = mindarRef.current
@@ -155,11 +215,19 @@ export default function ArExperience() {
     setTargetState("searching")
     setStarted(true); setStatus("Đang mở camera và tải mô hình…")
     try {
-      const mindarModuleUrl = "/vendor/mindar/mindar-image-three.prod.js"
-      const { MindARThree } = await import(/* @vite-ignore */ mindarModuleUrl)
+      const MindARThree = await loadMindARThree()
       if (!activeRef.current || attempt !== attemptRef.current) return
-      const mindar = new MindARThree({ container: containerRef.current, imageTargetSrc: config.targetUrl, maxTrack: 1, missTolerance: 12, uiScanning: "no" })
+      const mindar = new MindARThree({
+        container: containerRef.current,
+        imageTargetSrc: config.targetUrl,
+        maxTrack: 1,
+        filterMinCF: 0.0005,
+        filterBeta: 1000,
+        missTolerance: 12,
+        uiScanning: "no",
+      })
       mindarRef.current = mindar
+      mindar.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5))
       mindar.renderer.domElement.style.zIndex = "1"
       mindar.renderer.domElement.style.inset = "0"
       mindar.renderer.domElement.style.width = "100%"
@@ -169,14 +237,41 @@ export default function ArExperience() {
       const anchors = targetLabels.map((label, index) => {
         const anchor = mindar.addAnchor(index)
         const lastPose = new Matrix4()
+        const smoothedPose = new Matrix4()
+        const rawPosition = new Vector3()
+        const rawQuaternion = new Quaternion()
+        const rawScale = new Vector3()
+        const currentPosition = new Vector3()
+        const currentQuaternion = new Quaternion()
+        const currentScale = new Vector3()
         let hasLastPose = false
+        let hasSmoothedPose = false
         anchor.onTargetUpdate = () => {
           if (anchor.group.visible) {
-            lastPose.copy(anchor.group.matrix)
+            const detectedPose = anchor.group.matrix
+            if (!hasSmoothedPose) {
+              smoothedPose.copy(detectedPose)
+              hasSmoothedPose = true
+            } else {
+              detectedPose.decompose(rawPosition, rawQuaternion, rawScale)
+              smoothedPose.decompose(currentPosition, currentQuaternion, currentScale)
+              const movement = currentPosition.distanceTo(rawPosition)
+              const rotation = currentQuaternion.angleTo(rawQuaternion)
+              const follow = Math.min(0.85, Math.max(0.18, 0.18 + movement * 4 + rotation * 0.18))
+              currentPosition.lerp(rawPosition, follow)
+              currentQuaternion.slerp(rawQuaternion, follow)
+              currentScale.lerp(rawScale, follow)
+              smoothedPose.compose(currentPosition, currentQuaternion, currentScale)
+              anchor.group.matrix.copy(smoothedPose)
+              anchor.group.matrixWorldNeedsUpdate = true
+            }
+            lastPose.copy(smoothedPose)
             hasLastPose = true
           }
         }
         anchor.onTargetFound = () => {
+          hasSmoothedPose = false
+          hasLastPose = false
           anchors.forEach((otherAnchor, otherIndex) => {
             if (otherIndex !== index) otherAnchor.group.visible = false
           })
@@ -205,7 +300,11 @@ export default function ArExperience() {
       if (!activeRef.current || attempt !== attemptRef.current) { try { mindar.stop() } catch { /* Not started yet. */ } return }
       const modelBounds = new Box3().setFromObject(model.scene)
       const modelHeight = modelBounds.getSize(new Vector3()).y
-      const scaleBase = modelHeight > 0 ? config.scale / modelHeight : config.scale
+      // MindAR anchors use a normalized target width. The CMS scale values were
+      // originally tuned for raw GLB coordinates, which made normalized models
+      // appear tiny. Convert the configured value into a useful target height.
+      const targetHeight = Math.max(config.scale * MODEL_TARGET_HEIGHT_MULTIPLIER, 1.2)
+      const scaleBase = modelHeight > 0 ? targetHeight / modelHeight : targetHeight
       modelScaleBasesRef.current = anchors.map(() => scaleBase)
       modelRefs.current = anchors.map(({ group }) => {
         const modelScene = model.scene.clone(true)
@@ -337,7 +436,7 @@ export default function ArExperience() {
   const readiness = config ? getArReadiness(config) : null
   return <main className="ar-page">
     <header className={`ar-page-header${started ? " is-running" : ""}`}>
-      <Link to="/heritage">← Quay lại Di sản số</Link>
+      <Link to="/heritage">← Quay lại Khám phá di sản</Link>
       <p className="ar-page-kicker">Trải nghiệm dành cho khách hàng</p>
       <h1>{productId === "p1" ? "AR Tháp Rùa" : productId === "p3" ? "AR Phố Hàng Trống" : "Trải nghiệm AR"}</h1>
       <p className={`ar-page-status${started ? " is-active" : ""}`} role="status">{status}</p>

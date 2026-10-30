@@ -16,6 +16,13 @@ interface SiteContentValue {
 const defaults = buildContentSnapshot(SITE_CONTENT_FIELDS, [], "published")
 const SiteContentContext = createContext<SiteContentValue | null>(null)
 
+function displayText(key: string, value: string): string {
+  if (key === "nav.heritage" && value.trim().toLocaleLowerCase("vi") === "di sản số") {
+    return "Khám phá di sản"
+  }
+  return value
+}
+
 export function SiteContentProvider({ children }: { children: ReactNode }) {
   const [content, setContent] = useState(defaults)
   const location = useLocation()
@@ -39,7 +46,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<SiteContentValue>(() => ({
     content,
-    text: (key) => content[key]?.isVisible === false ? "" : content[key]?.value ?? "",
+    text: (key) => content[key]?.isVisible === false ? "" : displayText(key, content[key]?.value ?? ""),
     visible: (key) => content[key]?.isVisible ?? true,
     refresh,
     previewingDraft,

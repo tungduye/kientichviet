@@ -1226,6 +1226,55 @@ h3 {
   border-style: dashed;
 }
 
+.heritage-story-column { grid-column: 1; grid-row: 1; }
+.heritage-experience-column { grid-column: 2; grid-row: 1; }
+.heritage-experience-column .heritage-ar-panel { order: 1; }
+.heritage-experience-column .heritage-product-panel { order: 2; }
+
+.heritage-card.is-upcoming {
+  border-style: dashed !important;
+}
+
+.heritage-card.is-upcoming .heritage-card-image img {
+  filter: blur(5px) grayscale(0.55) saturate(0.5) brightness(0.42);
+  transform: scale(1.08);
+}
+
+.heritage-coming-soon-overlay {
+  position: absolute;
+  z-index: 4;
+  top: 50%;
+  left: 50%;
+  width: max-content;
+  max-width: calc(100% - 32px);
+  padding: 14px 20px;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(255, 235, 209, 0.72);
+  border-radius: 8px;
+  color: #fff8ee;
+  background: rgba(76, 7, 14, 0.86);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.38);
+  font: 800 clamp(24px, 3.2vw, 42px)/1.1 "Be Vietnam Pro", sans-serif;
+  letter-spacing: 0.1em;
+  text-align: center;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+.audio-primary-controls {
+  width: 100%;
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  .heritage-experience-column { grid-column: 1; grid-row: 1; }
+  .heritage-story-column { grid-column: 1; grid-row: 2; }
+  .heritage-coming-soon-overlay {
+    padding: 12px 16px;
+    font-size: clamp(22px, 8vw, 34px);
+  }
+}
+
 .product-image {
   aspect-ratio: 0.84;
   background: var(--gold);

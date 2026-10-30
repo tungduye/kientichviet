@@ -2,6 +2,7 @@ import { Link } from "react-router-dom"
 
 import { useCatalog } from "../context/CatalogContext"
 import { useSiteContent } from "../context/SiteContentContext"
+import { isUpcomingProduct } from "../data/products"
 
 import {
   Sparkles,
@@ -379,11 +380,13 @@ export default function HeritageHub() {
                 const cardMeta = heritageCardsData.find(
                   (d) => d.slug === p.slug,
                 )
+                const isUpcoming = isUpcomingProduct(p)
 
                 return (
                   <article
                     key={p.id}
-                    className="heritage-card group"
+                    id={`heritage-${p.slug}`}
+                    className={`heritage-card group${isUpcoming ? " is-upcoming" : ""}`}
                     style={{
                       background:
                         "linear-gradient(150deg, #231114 0%, #160a0c 100%)",
@@ -427,6 +430,7 @@ export default function HeritageHub() {
                     <div>
                       {/* Image Preview with interactive overlay */}
                       <Link
+                        className="heritage-card-image"
                         to={`/heritage/${p.slug}`}
                         style={{
                           display: "block",
@@ -457,6 +461,12 @@ export default function HeritageHub() {
                             e.currentTarget.style.transform = "scale(1)"
                           }}
                         />
+
+                        {isUpcoming && (
+                          <span className="heritage-coming-soon-overlay" aria-hidden="true">
+                            COMING SOON
+                          </span>
+                        )}
 
                         {/* Top Gradient Overlay */}
                         <div

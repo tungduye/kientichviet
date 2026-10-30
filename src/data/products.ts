@@ -37,7 +37,7 @@ export const products: Product[] = [
     name: "Tháp Rùa",
     eyebrow: "Hà Nội · Hồ Gươm",
     price: "820.000 ₫",
-    image: "/images/thap-rua.jpg",
+    image: "/images/thap-rua-angle-front.jpg",
     number: "02",
     accent: "Mới",
     description:
