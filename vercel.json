@@ -15,7 +15,7 @@
   ],
   "rewrites": [
     {
-      "source": "/((?!images/|models/|audio/|assets/|favicon.png|robots.txt).*)",
+      "source": "/((?!images/|models/|audio/|assets/|vendor/|ar-targets/|favicon.png|robots.txt).*)",
       "destination": "/index.html"
     }
   ]
