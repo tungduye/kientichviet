@@ -4,7 +4,7 @@ import {
 } from "../heritage-chat/requestGuards.ts"
 
 const MAX_SPEECH_LENGTH = 1800
-const rateLimits = new Map<string, { count: number resetAt: number }>()
+const rateLimits = new Map<string, { count: number, resetAt: number }>()
 
 function isRateLimited(ip: string): boolean {
   const now = Date.now()
@@ -113,7 +113,10 @@ Deno.serve(async (req) => {
       status: 200,
       headers: {
         ...corsHeaders,
-        "Content-Type": "audio/mpeg",
+        // Supabase Functions JS deserializes application/octet-stream as a Blob.
+        // Returning audio/mpeg would be treated as text and corrupt the MP3 bytes.
+        "Content-Type": "application/octet-stream",
+        "X-Audio-Content-Type": "audio/mpeg",
         "Cache-Control": "private, no-store",
         "Content-Disposition": "inline; filename=assistant.mp3",
         "X-Content-Type-Options": "nosniff",
