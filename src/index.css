@@ -2729,10 +2729,12 @@ h2 { letter-spacing: -0.015em !important; }
   white-space: pre-wrap;
 }
 .chat-message-assistant .chat-message-bubble {
+  padding: 13px 15px;
   border: 1px solid rgba(143, 0, 25, 0.08);
   border-bottom-left-radius: 4px;
   color: #3d302b;
   background: #fff;
+  line-height: 1.65;
 }
 .chat-replay-button {
   display: inline-flex;
@@ -2804,11 +2806,12 @@ h2 { letter-spacing: -0.015em !important; }
 .chat-voice-button.is-listening { color: #fff; background: var(--red); animation: chat-listening 1.2s infinite; }
 .chat-send-button { color: var(--red); background: var(--gold); }
 .chat-send-button:disabled, .chat-voice-button:disabled { cursor: not-allowed; opacity: 0.4; }
-.markdown-body p { margin: 0 0 8px; }
+.markdown-body p { margin: 0 0 11px; }
 .markdown-body p:last-child { margin-bottom: 0; }
 .markdown-body strong { color: var(--red); font-weight: 700; }
-.markdown-body ul, .markdown-body ol { margin: 0 0 8px; padding-left: 20px; }
-.markdown-body li { margin-bottom: 3px; }
+.markdown-body ul, .markdown-body ol { margin: 5px 0 12px; padding-left: 19px; }
+.markdown-body li { margin-bottom: 7px; padding-left: 2px; }
+.markdown-body li:last-child { margin-bottom: 0; }
 @keyframes pulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
 @keyframes chat-listening { 0%, 100% { box-shadow: 0 0 0 0 rgba(143, 0, 25, 0.28); } 50% { box-shadow: 0 0 0 8px rgba(143, 0, 25, 0); } }
 @media (max-width: 580px) {

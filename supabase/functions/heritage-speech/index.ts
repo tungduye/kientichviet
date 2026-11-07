@@ -86,12 +86,12 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         model: Deno.env.get("OPENAI_TTS_MODEL") || "gpt-4o-mini-tts-2025-12-15",
-        voice: Deno.env.get("OPENAI_TTS_VOICE") || "coral",
+        voice: Deno.env.get("OPENAI_TTS_VOICE") || "marin",
         input: text,
         response_format: "mp3",
-        speed: 0.96,
+        speed: 1.08,
         instructions:
-          "Đọc bằng giọng nữ Việt Nam ấm áp, tự nhiên, rõ chữ và nhịp vừa phải. Phát âm tiếng Việt chuẩn. Với từ tiếng Anh hoặc thuật ngữ kỹ thuật, chuyển sang cách phát âm tiếng Anh rõ ràng: NFC đọc từng chữ cái, AR đọc từng chữ cái, 3D đọc là three dee, basswood và mosaic đọc theo tiếng Anh. Không đọc ký hiệu markdown.",
+          "Đọc bằng giọng nữ Việt Nam trẻ, ấm áp và gần gũi như đang trò chuyện trực tiếp với khách hàng. Tốc độ nhanh vừa phải, ngữ điệu tự nhiên, có nhấn nhẹ vào tên sản phẩm và mức giá; nghỉ rất ngắn giữa các ý, không đọc kiểu phát thanh viên hoặc robot. Phát âm tiếng Việt rõ ràng. Với từ tiếng Anh hoặc thuật ngữ kỹ thuật, chuyển sang cách phát âm tiếng Anh tự nhiên: NFC đọc từng chữ cái, AR đọc từng chữ cái, 3D đọc là three dee, basswood và mosaic đọc theo tiếng Anh. Không đọc ký hiệu markdown.",
       }),
       signal: AbortSignal.timeout(25_000),
     })
