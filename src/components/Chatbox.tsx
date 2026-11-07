@@ -10,7 +10,6 @@ import {
   saveChatHistory,
   stripMarkdownForSpeech,
 } from "../features/chat/chatSession"
-import { waitForVietnameseVoice } from "../features/chat/voiceSelection"
 import { supabase } from "../integrations/supabase/client"
 import { useSiteContent } from "../context/SiteContentContext"
 
@@ -69,11 +68,12 @@ export default function Chatbox() {
   const [voiceNotice, setVoiceNotice] = useState("")
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const audioUrlRef = useRef("")
   const conversationGenerationRef = useRef(0)
   const speechGenerationRef = useRef(0)
   const supportsVoiceInput = Boolean(getSpeechRecognitionConstructor())
-  const supportsVoiceOutput =
-    typeof window !== "undefined" && "speechSynthesis" in window
+  const supportsVoiceOutput = typeof window !== "undefined" && "Audio" in window
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -88,57 +88,85 @@ export default function Chatbox() {
     return () => {
       speechGenerationRef.current += 1
       recognitionRef.current?.abort()
-      window.speechSynthesis?.cancel()
+      audioRef.current?.pause()
+      if (audioUrlRef.current) URL.revokeObjectURL(audioUrlRef.current)
     }
   }, [])
 
   const stopSpeaking = useCallback(() => {
     if (!supportsVoiceOutput) return
     speechGenerationRef.current += 1
-    window.speechSynthesis.cancel()
+    audioRef.current?.pause()
+    audioRef.current = null
+    if (audioUrlRef.current) {
+      URL.revokeObjectURL(audioUrlRef.current)
+      audioUrlRef.current = ""
+    }
     setIsSpeaking(false)
   }, [supportsVoiceOutput])
 
   const speakReply = useCallback(
     async (reply: string) => {
       if (!supportsVoiceOutput) {
-        setVoiceNotice("Trình duyệt này chưa hỗ trợ đọc câu trả lời bằng giọng nói.")
+        setVoiceNotice(
+          "Trình duyệt này chưa hỗ trợ đọc câu trả lời bằng giọng nói.",
+        )
         return
       }
-      const speechGeneration = ++speechGenerationRef.current
-      window.speechSynthesis.cancel()
-      setIsSpeaking(false)
-      const voice = await waitForVietnameseVoice(window.speechSynthesis)
-      if (speechGeneration !== speechGenerationRef.current) return
-      if (!voice) {
-        setVoiceNotice("Thiết bị chưa có giọng đọc tiếng Việt. Câu trả lời vẫn được hiển thị bằng chữ.")
+      stopSpeaking()
+      const activeGeneration = ++speechGenerationRef.current
+      setVoiceNotice("Đang chuẩn bị giọng đọc AI…")
+
+      const { data, error } = await supabase.functions.invoke(
+        "heritage-speech",
+        { body: { text: stripMarkdownForSpeech(reply) } },
+      )
+
+      if (activeGeneration !== speechGenerationRef.current) return
+
+      if (error || !(data instanceof Blob)) {
+        setVoiceNotice(
+          "Chưa phát được giọng đọc. Anh/chị có thể bấm biểu tượng loa để thử lại.",
+        )
         return
       }
 
-      const utterance = new SpeechSynthesisUtterance(
-        stripMarkdownForSpeech(reply),
-      )
-      utterance.lang = "vi-VN"
-      utterance.rate = 0.93
-      utterance.pitch = 1.05
-      if (voice) utterance.voice = voice
-      utterance.onstart = () => {
-        if (speechGeneration === speechGenerationRef.current)
+      const audioUrl = URL.createObjectURL(data)
+      const audio = new Audio(audioUrl)
+      audioRef.current = audio
+      audioUrlRef.current = audioUrl
+      audio.onplay = () => {
+        if (activeGeneration === speechGenerationRef.current) {
+          setVoiceNotice("")
           setIsSpeaking(true)
-      }
-      utterance.onend = () => {
-        if (speechGeneration === speechGenerationRef.current)
-          setIsSpeaking(false)
-      }
-      utterance.onerror = () => {
-        if (speechGeneration === speechGenerationRef.current) {
-          setIsSpeaking(false)
-          setVoiceNotice("Trình duyệt chưa phát được giọng tiếng Việt. Câu trả lời vẫn có ở phần chữ.")
         }
       }
-      window.speechSynthesis.speak(utterance)
+      audio.onended = () => {
+        if (activeGeneration === speechGenerationRef.current) {
+          setIsSpeaking(false)
+          setVoiceNotice("")
+        }
+        URL.revokeObjectURL(audioUrl)
+        if (audioUrlRef.current === audioUrl) audioUrlRef.current = ""
+      }
+      audio.onerror = () => {
+        if (activeGeneration === speechGenerationRef.current) {
+          setIsSpeaking(false)
+          setVoiceNotice(
+            "Chưa phát được giọng đọc. Anh/chị vui lòng bấm biểu tượng loa để thử lại.",
+          )
+        }
+      }
+
+      try {
+        await audio.play()
+      } catch {
+        setVoiceNotice(
+          "Trình duyệt đang chặn tự phát âm thanh. Anh/chị hãy bấm biểu tượng loa dưới câu trả lời.",
+        )
+      }
     },
-    [supportsVoiceOutput],
+    [stopSpeaking, supportsVoiceOutput],
   )
 
   const handleSend = useCallback(
@@ -251,7 +279,9 @@ export default function Chatbox() {
       recognition.start()
     } catch {
       setIsListening(false)
-      setVoiceNotice("Không mở được microphone. Anh/chị có thể nhập câu hỏi bằng chữ.")
+      setVoiceNotice(
+        "Không mở được microphone. Anh/chị có thể nhập câu hỏi bằng chữ.",
+      )
     }
   }
 
@@ -350,14 +380,34 @@ export default function Chatbox() {
                     </span>
                   )}
                   <div
-                    className={`chat-message-bubble ${
-                      message.sender === "assistant" ? "markdown-body" : ""
-                    }`}
+                    className={
+                      message.sender === "assistant"
+                        ? "chat-assistant-content"
+                        : "chat-user-content"
+                    }
                   >
-                    {message.sender === "assistant" ? (
-                      <ReactMarkdown>{message.text}</ReactMarkdown>
-                    ) : (
-                      message.text
+                    <div
+                      className={`chat-message-bubble ${
+                        message.sender === "assistant" ? "markdown-body" : ""
+                      }`}
+                    >
+                      {message.sender === "assistant" ? (
+                        <ReactMarkdown>{message.text}</ReactMarkdown>
+                      ) : (
+                        message.text
+                      )}
+                    </div>
+                    {message.sender === "assistant" && (
+                      <button
+                        className="chat-replay-button"
+                        type="button"
+                        onClick={() => void speakReply(message.text)}
+                        aria-label="Đọc câu trả lời bằng giọng AI"
+                        title="Nghe câu trả lời"
+                      >
+                        <Icon name="headphones" size={15} />
+                        Nghe lại
+                      </button>
                     )}
                   </div>
                 </div>
@@ -413,7 +463,9 @@ export default function Chatbox() {
                   void handleSend(inputValue)
                 }
               }}
-              placeholder={isListening ? "Đang nghe…" : text("chat.placeholder")}
+              placeholder={
+                isListening ? "Đang nghe…" : text("chat.placeholder")
+              }
               maxLength={2000}
               rows={1}
             />
@@ -428,7 +480,8 @@ export default function Chatbox() {
           </div>
           <small className="chat-voice-privacy">
             Khi bật micro, trình duyệt có thể gửi âm thanh tới nhà cung cấp dịch
-            vụ nhận dạng giọng nói trực tuyến.
+            vụ nhận dạng giọng nói trực tuyến. Giọng đọc câu trả lời được tạo
+            bởi AI.
           </small>
         </section>
       )}

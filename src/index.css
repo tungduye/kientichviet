@@ -2703,6 +2703,14 @@ h2 { letter-spacing: -0.015em !important; }
 .chat-message-row { display: flex; align-items: flex-end; gap: 7px; }
 .chat-message-user { justify-content: flex-end; }
 .chat-message-avatar { width: 30px; height: 30px; border: 1px solid rgba(143, 0, 25, 0.12); }
+.chat-assistant-content,
+.chat-user-content {
+  display: flex;
+  width: 100%;
+  max-width: 82%;
+  flex-direction: column;
+}
+.chat-user-content { align-items: flex-end; }
 .chat-message-bubble {
   max-width: 82%;
   padding: 11px 14px;
@@ -2712,6 +2720,8 @@ h2 { letter-spacing: -0.015em !important; }
   line-height: 1.55;
   overflow-wrap: break-word;
 }
+.chat-assistant-content .chat-message-bubble,
+.chat-user-content .chat-message-bubble { max-width: 100%; }
 .chat-message-user .chat-message-bubble {
   border-bottom-right-radius: 4px;
   color: #ffebd1;
@@ -2724,6 +2734,20 @@ h2 { letter-spacing: -0.015em !important; }
   color: #3d302b;
   background: #fff;
 }
+.chat-replay-button {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 5px;
+  margin-top: 5px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  color: #6b4538;
+  background: #fff0dd;
+  font: 700 10px/1.2 "Be Vietnam Pro", sans-serif;
+}
+.chat-replay-button:hover { color: var(--red); background: #ffe2bd; }
+.chat-replay-button:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
 .chat-typing {
   display: flex;
   gap: 4px;

@@ -3,6 +3,9 @@ project_id = "veuzowtvsbxnyrfdbgfz"
 [functions.heritage-chat]
 verify_jwt = false
 
+[functions.heritage-speech]
+verify_jwt = false
+
 [functions.create-order]
 verify_jwt = false
 

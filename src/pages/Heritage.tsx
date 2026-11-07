@@ -157,6 +157,9 @@ export default function Heritage() {
   const isThapRua = product.slug === "thap-rua"
   const isChuaMotCot = product.slug === "chua-mot-cot"
   const isHangTrong = product.slug === "pho-hang-trong"
+  const heritageImage = isThapRua
+    ? "/images/thap-rua-product-main.png"
+    : product.listingImage || product.image
 
   return (
     <div
@@ -192,7 +195,7 @@ export default function Heritage() {
         >
           {/* Background Heritage Image with centered crop */}
           <img
-            src={product.listingImage || product.image}
+            src={heritageImage}
             alt={product.name}
             style={{
               position: "absolute",
@@ -447,7 +450,7 @@ export default function Heritage() {
                         "Thuyết minh Di sản · Kiến Tích Việt"
                 }
                 heritageName={product.name}
-                coverImage={product.listingImage || product.image}
+                coverImage={heritageImage}
                 caption={
                   isThapRua
                     ? "Âm vang Hồ Gươm"
@@ -987,7 +990,7 @@ export default function Heritage() {
                     }}
                   >
                     <img
-                      src={product.listingImage || product.image}
+                      src={heritageImage}
                       alt={product.name}
                       style={{
                         width: "100%",
@@ -1628,7 +1631,7 @@ export default function Heritage() {
               <ModelViewer3D
                 src={product.modelUrl}
                 iosSrc={product.usdzUrl}
-                poster={product.listingImage || product.image}
+                poster={heritageImage}
                 alt={`Mô hình 3D tương tác ${product.name} - Di sản Kiến Tích Việt`}
                 title={product.name}
                 onClose={() => setIs3DModalOpen(false)}

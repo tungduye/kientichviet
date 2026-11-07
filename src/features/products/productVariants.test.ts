@@ -25,12 +25,12 @@ describe("Product variants", () => {
     expect(variants[2].finish).toContain("mosaic")
   })
 
-  it("uses the current price for Basic and contact labels for unpriced editions", () => {
+  it("uses the published Tháp Rùa price table", () => {
     const variants = getProductVariants(thapRua)
 
-    expect(variants[0].price).toBe("820.000 ₫")
-    expect(variants[1].price).toBe("Liên hệ")
-    expect(variants[2].price).toBe("Liên hệ")
+    expect(variants[0].price).toBe("369.000 ₫")
+    expect(variants[1].price).toBe("499.000 ₫")
+    expect(variants[2].price).toBe("669.000 ₫")
   })
 
   it("builds distinct cart products for each edition", () => {
@@ -54,10 +54,13 @@ describe("Product variants", () => {
 
     const variants = getProductVariants(phoHangTrong)
 
-    expect(variants.map((variant) => variant.id)).toEqual(["basic", "signature"])
-    expect(variants[0].price).toBe("790.000 ₫")
+    expect(variants.map((variant) => variant.id)).toEqual([
+      "basic",
+      "signature",
+    ])
+    expect(variants[0].price).toBe("219.000 ₫")
     expect(variants[0].imageMode).toBe("color")
-    expect(variants[1].price).toBe("Liên hệ")
+    expect(variants[1].price).toBe("289.000 ₫")
   })
 
   it("uses the Premium specifications for the Premium cart item", () => {
@@ -67,6 +70,7 @@ describe("Product variants", () => {
     const product = buildVariantProduct(thapRua, premium)
 
     expect(product.specifications.time).toBe("15 tiếng")
+    expect(product.specifications.difficulty).toBe("Nâng cao")
     expect(product.specifications.material).toContain("mosaic")
   })
 })

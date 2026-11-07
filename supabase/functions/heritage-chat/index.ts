@@ -48,8 +48,8 @@ const OFFICIAL_DATA = `
 Thương hiệu: Kiến Tích Việt — mô hình lắp ghép gỗ di sản Việt Nam. Slogan: "Dựng hình di sản, nối nhịp thời gian". Hành trình sản phẩm: mở hộp → lắp ghép → hoàn thiện và trưng bày → chạm NFC để mở nội dung số → nghe câu chuyện và khám phá mô hình 3D trên điện thoại.
 
 Sản phẩm:
-1. Tháp Rùa (Hà Nội · Hồ Gươm): Basic và Signature — 150 mảnh — 10 tiếng — độ khó trung bình — gỗ basswood — kích thước 20 × 20 × 30 cm — từ 15 tuổi. Premium — 150 mảnh — 15 tiếng — độ khó trung bình — gỗ basswood kết hợp khảm đá mosaic — kích thước 20 × 20 × 30 cm — từ 15 tuổi. Giá phiên bản lấy theo nội dung website đã xuất bản; nếu không có thì nói chưa được cung cấp.
-2. Phố Hàng Trống (Hà Nội · Phố cổ Hà Nội): Basic và Signature — 211 mảnh — 5 tiếng — độ khó trung bình — gỗ basswood — kích thước 15 × 15 × 15 cm — từ 15 tuổi. Basic 790.000₫; giá Signature lấy theo nội dung website đã xuất bản hoặc nói chưa được cung cấp.
+1. Tháp Rùa (Hà Nội · Hồ Gươm): Basic và Signature — 150 mảnh — 10 tiếng — độ khó trung bình — gỗ basswood — kích thước 20 × 20 × 30 cm — từ 15 tuổi. Premium — 150 mảnh — 15 tiếng — độ khó nâng cao — gỗ basswood kết hợp khảm đá mosaic — kích thước 20 × 20 × 30 cm — từ 15 tuổi. Giá: Basic 369.000₫; Signature 499.000₫; Premium 669.000₫.
+2. Phố Hàng Trống (Hà Nội · Phố cổ Hà Nội): Basic và Signature — 211 mảnh — 5 tiếng — độ khó trung bình — gỗ basswood — kích thước 15 × 15 × 15 cm — từ 15 tuổi. Giá: Basic 219.000₫; Signature 289.000₫. Không có phiên bản Premium.
 3. Chùa Một Cột — sản phẩm COMING SOON. Số mảnh: xxx mảnh. Các thông số khác đang cập nhật; trợ lý chỉ giới thiệu ngắn gọn, chưa kể thành tuyến câu chuyện chính.
 
 Hai câu chuyện chính:
@@ -61,28 +61,43 @@ Hướng dẫn lắp ghép an toàn: kiểm tra và phân nhóm chi tiết theo 
 NFC: dùng điện thoại có NFC, bật NFC nếu thiết bị yêu cầu rồi chạm vùng NFC của điện thoại vào thẻ/điểm chạm trên sản phẩm để mở trang nội dung di sản. NFC không tự cài ứng dụng.
 Trải nghiệm số: khách hàng có thể mở mô hình 3D, xoay và phóng to để quan sát. Chức năng camera Web AR hiện đang tạm ẩn, không hướng dẫn người dùng tìm hoặc mở camera AR.
 
-Chưa được cung cấp: tồn kho, chính sách đổi trả/vận chuyển/bảo hành, giá Signature và Premium.`
+Chưa được cung cấp: tồn kho và chính sách đổi trả/vận chuyển/bảo hành.`
 
 async function loadPublishedSiteContent(): Promise<string> {
   const url = Deno.env.get("SUPABASE_URL")
   const key = Deno.env.get("SUPABASE_ANON_KEY")
   if (!url || !key) return ""
   try {
-    const response = await fetch(`${url}/rest/v1/site_content_public?select=content_key,published_value,is_visible&is_visible=eq.true`, {
-      headers: { apikey: key, Authorization: `Bearer ${key}` },
-      signal: AbortSignal.timeout(2500),
-    })
+    const response = await fetch(
+      `${url}/rest/v1/site_content_public?select=content_key,published_value,is_visible&is_visible=eq.true`,
+      {
+        headers: { apikey: key, Authorization: `Bearer ${key}` },
+        signal: AbortSignal.timeout(2500),
+      },
+    )
     if (!response.ok) return ""
     const allowedKeys = new Set([
-      "footer.address", "footer.email", "footer.phone",
-      "home.hero.eyebrow", "home.hero.body",
-      "products.kicker", "products.title", "products.body",
-      "heritage.hub.title", "heritage.hub.body",
+      "footer.address",
+      "footer.email",
+      "footer.phone",
+      "home.hero.eyebrow",
+      "home.hero.body",
+      "products.kicker",
+      "products.title",
+      "products.body",
+      "heritage.hub.title",
+      "heritage.hub.body",
     ])
-    const rows = await response.json() as Array<{ content_key: string; published_value: string }>
+    const rows = (await response.json()) as Array<{
+      content_key: string
+      published_value: string
+    }>
     const safeRows = rows
       .filter((row) => allowedKeys.has(row.content_key))
-      .map((row) => ({ key: row.content_key, value: row.published_value.slice(0, 1000) }))
+      .map((row) => ({
+        key: row.content_key,
+        value: row.published_value.slice(0, 1000),
+      }))
     return JSON.stringify(safeRows).slice(0, 8000)
   } catch {
     return ""
@@ -102,13 +117,9 @@ Quy tắc:
 DỮ LIỆU CHÍNH THỨC:${OFFICIAL_DATA}`
 
 Deno.serve(async (req) => {
-  const allowedPreviewOrigins =
-    Deno.env.get("ALLOWED_PREVIEW_ORIGINS") || ""
+  const allowedPreviewOrigins = Deno.env.get("ALLOWED_PREVIEW_ORIGINS") || ""
   const requestOrigin = req.headers.get("origin") || ""
-  const corsHeaders = getCorsHeaders(
-    req,
-    allowedPreviewOrigins,
-  )
+  const corsHeaders = getCorsHeaders(req, allowedPreviewOrigins)
 
   if (req.method === "OPTIONS")
     return new Response(null, { headers: corsHeaders })
@@ -185,7 +196,10 @@ Deno.serve(async (req) => {
       const response = await openAIResponse.json()
       const text = (response.output ?? [])
         .filter((item: { type?: string }) => item.type === "message")
-        .flatMap((item: { content?: Array<{ type?: string; text?: string }> }) => item.content ?? [])
+        .flatMap(
+          (item: { content?: Array<{ type?: string text?: string }> }) =>
+            item.content ?? [],
+        )
         .filter((item: { type?: string }) => item.type === "output_text")
         .map((item: { text?: string }) => item.text ?? "")
         .join("")
@@ -196,7 +210,11 @@ Deno.serve(async (req) => {
 
     const lastStatus = openAIResponse.status
     const errorText = await openAIResponse.text()
-    console.warn("OpenAI Responses API failed:", lastStatus, errorText.slice(0, 200))
+    console.warn(
+      "OpenAI Responses API failed:",
+      lastStatus,
+      errorText.slice(0, 200),
+    )
 
     return json(
       {

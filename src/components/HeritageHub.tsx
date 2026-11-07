@@ -386,7 +386,9 @@ export default function HeritageHub() {
                   <article
                     key={p.id}
                     id={`heritage-${p.slug}`}
-                    className={`heritage-card group${isUpcoming ? " is-upcoming" : ""}`}
+                    className={`heritage-card group${
+                      isUpcoming ? " is-upcoming" : ""
+                    }`}
                     style={{
                       background:
                         "linear-gradient(150deg, #231114 0%, #160a0c 100%)",
@@ -443,7 +445,11 @@ export default function HeritageHub() {
                         }}
                       >
                         <img
-                          src={p.image}
+                          src={
+                            p.slug === "thap-rua"
+                              ? "/images/thap-rua-product-main.png"
+                              : p.image
+                          }
                           alt={p.name}
                           style={{
                             width: "100%",
@@ -463,7 +469,10 @@ export default function HeritageHub() {
                         />
 
                         {isUpcoming && (
-                          <span className="heritage-coming-soon-overlay" aria-hidden="true">
+                          <span
+                            className="heritage-coming-soon-overlay"
+                            aria-hidden="true"
+                          >
                             COMING SOON
                           </span>
                         )}

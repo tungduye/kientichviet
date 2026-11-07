@@ -19,7 +19,7 @@ const THAP_RUA_VARIANTS: ProductVariant[] = [
     name: "Basic",
     finish: "Gỗ không màu",
     description: "Giữ vẻ mộc nguyên bản để làm nổi bật cấu trúc lắp ghép.",
-    price: "820.000 ₫",
+    price: "369.000 ₫",
     // "Gỗ không màu" describes the unpainted material, not a black-and-white photo.
     imageMode: "color",
   },
@@ -28,7 +28,7 @@ const THAP_RUA_VARIANTS: ProductVariant[] = [
     name: "Signature",
     finish: "Phiên bản có màu",
     description: "Hoàn thiện màu sắc theo tinh thần Tháp Rùa giữa Hồ Gươm.",
-    price: "Liên hệ",
+    price: "499.000 ₫",
     imageMode: "color",
   },
   {
@@ -36,12 +36,12 @@ const THAP_RUA_VARIANTS: ProductVariant[] = [
     name: "Premium",
     finish: "Khảm mosaic",
     description: "Phiên bản thủ công cao cấp với bề mặt khảm mosaic.",
-    price: "Liên hệ",
+    price: "669.000 ₫",
     imageMode: "placeholder",
     specifications: {
       pieces: "150",
       time: "15 tiếng",
-      difficulty: "Trung bình",
+      difficulty: "Nâng cao",
       material: "Gỗ basswood kết hợp khảm đá mosaic",
       size: "20 × 20 × 30 cm",
       audience: "15 tuổi trở lên",
@@ -82,7 +82,7 @@ const PHO_HANG_TRONG_VARIANTS: ProductVariant[] = [
     name: "Basic",
     finish: "Gỗ không màu",
     description: "Phiên bản gỗ mộc nguyên bản của mô hình Phố Hàng Trống.",
-    price: "790.000 ₫",
+    price: "219.000 ₫",
     // Keep the original product-photo colors for the natural wood edition.
     imageMode: "color",
   },
@@ -91,7 +91,7 @@ const PHO_HANG_TRONG_VARIANTS: ProductVariant[] = [
     name: "Signature",
     finish: "Phiên bản có màu",
     description: "Phiên bản hoàn thiện màu theo tinh thần phố nghề Hàng Trống.",
-    price: "Liên hệ",
+    price: "289.000 ₫",
     imageMode: "color",
   },
 ]

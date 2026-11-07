@@ -38,7 +38,7 @@ export const products: Product[] = [
     legacySlugs: ["thap-pho-minh"],
     name: "Tháp Rùa",
     eyebrow: "Hà Nội · Hồ Gươm",
-    price: "820.000 ₫",
+    price: "369.000 ₫",
     image: "/images/thap-rua-product-main.png",
     listingImage: "/images/thap-rua-angle-front.jpg",
     number: "02",
@@ -89,7 +89,7 @@ export const products: Product[] = [
     legacySlugs: ["khue-van-cac"],
     name: "Phố Hàng Trống",
     eyebrow: "Hà Nội · Phố cổ Hà Nội",
-    price: "790.000 ₫",
+    price: "219.000 ₫",
     image:
       "https://veuzowtvsbxnyrfdbgfz.supabase.co/storage/v1/object/public/product-images/catalog/p3/91578fc6-8bae-48c4-954d-6622d9262801?v=1793870074128",
     listingImage:
