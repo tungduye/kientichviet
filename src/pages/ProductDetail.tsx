@@ -38,6 +38,7 @@ export default function ProductDetail() {
     product && selectedVariant
       ? buildVariantProduct(product, selectedVariant)
       : product
+  const specifications = selectedProduct?.specifications ?? product?.specifications
   const isProductUpcoming = product ? isUpcomingProduct(product) : false
   const galleryImages = selectedVariant
     ? selectedVariant.imageUrls.length
@@ -126,14 +127,22 @@ export default function ProductDetail() {
           className="product-modal product-detail-layout"
         >
           <div className="modal-image product-detail-gallery reveal">
-            {selectedVariant?.imageMode === "placeholder" &&
-            !activeGalleryImage ? (
-              isProductUpcoming ? (
-                <div className="upcoming-product-visual" role="img" aria-label="Chùa Một Cột — COMING SOON">
-                  <img src={product.image} alt="" />
-                  <span>COMING SOON</span>
-                </div>
-              ) : (
+            {isProductUpcoming ? (
+              <div
+                className="upcoming-product-visual"
+                role="img"
+                aria-label={`${product.name} — COMING SOON`}
+              >
+                <img
+                  src={
+                    activeGalleryImage || selectedProduct?.image || product.image
+                  }
+                  alt=""
+                />
+                <span>COMING SOON</span>
+              </div>
+            ) : selectedVariant?.imageMode === "placeholder" &&
+              !activeGalleryImage ? (
                 <div
                   className="variant-image-placeholder"
                   role="img"
@@ -143,7 +152,6 @@ export default function ProductDetail() {
                   <strong>Premium Mosaic</strong>
                   <span>Hình ảnh đang được hoàn thiện</span>
                 </div>
-              )
             ) : (
               <>
                 <img
@@ -152,7 +160,7 @@ export default function ProductDetail() {
                     !selectedVariant.imageUrl
                       ? "variant-image-monochrome"
                       : ""
-                  } ${isProductUpcoming ? "variant-image-upcoming" : ""}`}
+                  }`}
                   src={
                     activeGalleryImage || selectedProduct?.image || product.image
                   }
@@ -160,9 +168,6 @@ export default function ProductDetail() {
                     selectedVariant ? ` phiên bản ${selectedVariant.name}` : ""
                   }`}
                 />
-                {isProductUpcoming && (
-                  <span className="product-detail-coming-soon">COMING SOON</span>
-                )}
               </>
             )}
             {galleryImages.length > 1 && (
@@ -210,7 +215,6 @@ export default function ProductDetail() {
                 </div>
               </>
             )}
-            <span>Mô hình gỗ · Tỉ lệ 1:120</span>
           </div>
           <div className="modal-copy reveal stagger-1">
             <p className="kicker">{product.eyebrow}</p>
@@ -255,38 +259,34 @@ export default function ProductDetail() {
               <span>
                 <small>Số mảnh</small>
                 <strong>
-                  {product.specifications.pieces
-                    ? `${product.specifications.pieces} mảnh`
+                  {specifications?.pieces
+                    ? `${specifications.pieces} mảnh`
                     : "Đang cập nhật"}
                 </strong>
               </span>
               <span>
                 <small>Thời gian</small>
                 <strong>
-                  {product.specifications.time || "Đang cập nhật"}
+                  {specifications?.time || "Đang cập nhật"}
                 </strong>
               </span>
               <span>
                 <small>Độ khó</small>
-                <strong>{product.specifications.difficulty}</strong>
+                <strong>{specifications?.difficulty || "Đang cập nhật"}</strong>
               </span>
             </div>
             <div style={{ marginTop: "20px" }}>
               <p>
                 <small>Chất liệu:</small>{" "}
-                <strong>{product.specifications.material}</strong>
+                <strong>{specifications?.material || "Đang cập nhật"}</strong>
               </p>
               <p>
                 <small>Kích thước:</small>{" "}
-                <strong>{product.specifications.size}</strong>
-              </p>
-              <p>
-                <small>Trọng lượng:</small>{" "}
-                <strong>{product.specifications.weight}</strong>
+                <strong>{specifications?.size || "Đang cập nhật"}</strong>
               </p>
               <p>
                 <small>Đối tượng:</small>{" "}
-                <strong>{product.specifications.audience}</strong>
+                <strong>{specifications?.audience || "Đang cập nhật"}</strong>
               </p>
             </div>
             <div className="modal-buy" style={{ marginTop: "35px" }}>
@@ -310,11 +310,6 @@ export default function ProductDetail() {
                 <Icon name="bag" />
               </button>
             </div>
-            {product.modelUrl && (
-              <Link className="product-ar-link" to={`/ar/${product.id}`}>
-                <Icon name="phone" /> Mở camera trải nghiệm Web AR
-              </Link>
-            )}
           </div>
         </div>
       </div>

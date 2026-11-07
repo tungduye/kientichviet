@@ -10,8 +10,8 @@ import {
 } from "../features/catalog/catalog"
 import { supabase } from "../integrations/supabase/client"
 import AdminContentEditor from "../components/admin/AdminContentEditor"
-import AdminArEditor from "../components/admin/AdminArEditor"
 import AdminReviews from "../components/admin/AdminReviews"
+import type { ProductSpecifications } from "../data/products"
 
 interface EditorItem {
   key: string
@@ -23,6 +23,7 @@ interface EditorItem {
   previewImageUrl: string
   isVisible: boolean
   revision: number
+  specifications: ProductSpecifications
   variant?: CatalogVariant
 }
 
@@ -41,6 +42,7 @@ function CatalogEditorCard({
   const [newFilesFirst, setNewFilesFirst] = useState(false)
   const [status, setStatus] = useState("")
   const [saving, setSaving] = useState(false)
+  const [specifications, setSpecifications] = useState(item.specifications)
 
   useEffect(() => {
     setPrice(item.price)
@@ -48,6 +50,7 @@ function CatalogEditorCard({
     setGalleryUrls(item.imageUrls)
     setFiles([])
     setNewFilesFirst(false)
+    setSpecifications(item.specifications)
   }, [item])
 
   useEffect(() => {
@@ -101,6 +104,7 @@ function CatalogEditorCard({
       formData.append("imageUrls", JSON.stringify(galleryUrls))
       formData.append("newFilesFirst", String(newFilesFirst))
       formData.append("expectedRevision", String(item.revision))
+      formData.append("specifications", JSON.stringify(specifications))
       files.forEach((image) => formData.append("images", image))
       const { data: uploadData, error: uploadError } =
         await supabase.functions.invoke("upload-product-image", {
@@ -161,6 +165,32 @@ function CatalogEditorCard({
             placeholder="Ví dụ: 820.000 ₫ hoặc Liên hệ"
           />
         </label>
+
+        <fieldset className="admin-specifications">
+          <legend>Thông số kỹ thuật</legend>
+          {([
+            ["pieces", "Số mảnh"],
+            ["time", "Thời gian"],
+            ["difficulty", "Độ khó"],
+            ["material", "Chất liệu"],
+            ["size", "Kích thước"],
+            ["audience", "Đối tượng"],
+          ] as const).map(([key, label]) => (
+            <label key={key}>
+              {label}
+              <input
+                value={specifications[key]}
+                maxLength={120}
+                onChange={(event) =>
+                  setSpecifications((current) => ({
+                    ...current,
+                    [key]: event.target.value,
+                  }))
+                }
+              />
+            </label>
+          ))}
+        </fieldset>
 
         <label className="admin-file-field">
           Ảnh sản phẩm
@@ -344,7 +374,7 @@ export default function AdminCatalog() {
   const [checkingSession, setCheckingSession] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
   const [accessStatus, setAccessStatus] = useState("")
-  const [activeTab, setActiveTab] = useState<"products" | "content" | "ar" | "reviews">(
+  const [activeTab, setActiveTab] = useState<"products" | "content" | "reviews">(
     "products",
   )
 
@@ -407,6 +437,7 @@ export default function AdminCatalog() {
         previewImageUrl: product.image,
         isVisible: productSetting?.isVisible ?? false,
         revision: productSetting?.revision ?? 0,
+        specifications: product.specifications,
       }
       const variantItems = getVariants(product, true).map((variant) => ({
         key: `${product.id}-${variant.id}`,
@@ -421,6 +452,7 @@ export default function AdminCatalog() {
           settings.find(
             (setting) => setting.productKey === `${product.id}-${variant.id}`,
           )?.revision ?? 0,
+        specifications: variant.specifications ?? product.specifications,
         variant,
       }))
 
@@ -458,7 +490,7 @@ export default function AdminCatalog() {
         <div>
           <p className="admin-kicker">Kiến Tích Việt</p>
           <h1>Quản trị website</h1>
-          <p>Sản phẩm, nội dung trang khách và trải nghiệm Web AR.</p>
+          <p>Sản phẩm, nội dung trang khách và đánh giá khách hàng.</p>
         </div>
         <div className="admin-header-actions">
           <a href="/" target="_blank" rel="noreferrer">
@@ -482,12 +514,6 @@ export default function AdminCatalog() {
           onClick={() => setActiveTab("content")}
         >
           Nội dung website
-        </button>
-        <button
-          className={activeTab === "ar" ? "active" : ""}
-          onClick={() => setActiveTab("ar")}
-        >
-          Web AR
         </button>
         <button
           className={activeTab === "reviews" ? "active" : ""}
@@ -520,7 +546,6 @@ export default function AdminCatalog() {
           </section>
         ))}
       {activeTab === "content" && <AdminContentEditor user={user} />}
-      {activeTab === "ar" && <AdminArEditor />}
       {activeTab === "reviews" && <AdminReviews />}
     </main>
   )

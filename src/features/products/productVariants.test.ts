@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import { products } from "../../data/products"
 import { buildVariantProduct, getProductVariants } from "./productVariants"
 
-describe("Tháp Rùa product variants", () => {
+describe("Product variants", () => {
   const thapRua = products.find((product) => product.slug === "thap-rua")!
 
   it("offers Basic, Signature and Premium in the requested order", () => {
@@ -20,6 +20,7 @@ describe("Tháp Rùa product variants", () => {
       "Premium",
     ])
     expect(variants[0].finish).toContain("không màu")
+    expect(variants[0].imageMode).toBe("color")
     expect(variants[1].finish).toContain("có màu")
     expect(variants[2].finish).toContain("mosaic")
   })
@@ -46,11 +47,26 @@ describe("Tháp Rùa product variants", () => {
     expect(cartProducts[2].name).toBe("Tháp Rùa · Premium")
   })
 
-  it("does not invent variants for other products", () => {
+  it("offers Basic and Signature for Phố Hàng Trống", () => {
     const phoHangTrong = products.find(
       (product) => product.slug === "pho-hang-trong",
     )!
 
-    expect(getProductVariants(phoHangTrong)).toEqual([])
+    const variants = getProductVariants(phoHangTrong)
+
+    expect(variants.map((variant) => variant.id)).toEqual(["basic", "signature"])
+    expect(variants[0].price).toBe("790.000 ₫")
+    expect(variants[0].imageMode).toBe("color")
+    expect(variants[1].price).toBe("Liên hệ")
+  })
+
+  it("uses the Premium specifications for the Premium cart item", () => {
+    const premium = getProductVariants(thapRua).find(
+      (variant) => variant.id === "premium",
+    )!
+    const product = buildVariantProduct(thapRua, premium)
+
+    expect(product.specifications.time).toBe("15 tiếng")
+    expect(product.specifications.material).toContain("mosaic")
   })
 })

@@ -20,6 +20,29 @@ function json(body: unknown, status: number, headers: Record<string, string>) {
   })
 }
 
+const SPECIFICATION_KEYS = [
+  "pieces",
+  "time",
+  "difficulty",
+  "material",
+  "size",
+  "audience",
+] as const
+
+function parseSpecifications(value: FormDataEntryValue | null) {
+  if (typeof value !== "string") throw new Error("Thiếu thông số kỹ thuật.")
+  const parsed = JSON.parse(value) as Record<string, unknown>
+  const specifications: Record<string, string> = {}
+  for (const key of SPECIFICATION_KEYS) {
+    const field = parsed?.[key]
+    if (typeof field !== "string" || !field.trim() || field.trim().length > 120) {
+      throw new Error("Thông số kỹ thuật không hợp lệ.")
+    }
+    specifications[key] = field.trim()
+  }
+  return specifications
+}
+
 Deno.serve(async (req) => {
   const allowedPreviewOrigins = Deno.env.get("ALLOWED_PREVIEW_ORIGINS") || ""
   const requestOrigin = req.headers.get("origin") || ""
@@ -79,6 +102,16 @@ Deno.serve(async (req) => {
     const expectedRevision = parseExpectedRevision(
       formData.get("expectedRevision"),
     )
+    let specifications: Record<string, string>
+    try {
+      specifications = parseSpecifications(formData.get("specifications"))
+    } catch (error) {
+      return json(
+        { error: error instanceof Error ? error.message : "Thông số kỹ thuật không hợp lệ." },
+        400,
+        corsHeaders,
+      )
+    }
     const images = [
       ...formData.getAll("images"),
       ...formData.getAll("image"),
@@ -198,6 +231,7 @@ Deno.serve(async (req) => {
         image_urls: finalImageUrls,
         revision: expectedRevision + 1,
         is_visible: visibilityValue === "true",
+        specifications,
       })
       .eq("product_key", productKey)
       .eq("revision", expectedRevision)

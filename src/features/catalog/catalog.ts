@@ -1,4 +1,4 @@
-import type { Product } from "../../data/products"
+import type { Product, ProductSpecifications } from "../../data/products"
 import type { ProductVariant } from "../products/productVariants"
 
 export interface CatalogSetting {
@@ -11,6 +11,7 @@ export interface CatalogSetting {
   isVisible: boolean
   sortOrder: number
   revision?: number
+  specifications?: ProductSpecifications | null
 }
 
 export interface CatalogProduct extends Product {
@@ -78,13 +79,25 @@ export function applyCatalogSettings(
     .map((product, index) => {
       const setting = settingsByKey.get(product.id)
       const imageUrls = resolveCatalogGallery(setting, product.image)
+      const configuredListingImage = imageUrls[0]
+      const isLegacyThapRuaCover =
+        product.id === "p1" &&
+        configuredListingImage?.includes("thap-rua-product-main.png")
 
       return {
         ...product,
         price: setting?.price || product.price,
         image: imageUrls[0] || product.image,
+        listingImage:
+          setting && configuredListingImage && !isLegacyThapRuaCover
+            ? configuredListingImage
+            : product.listingImage || configuredListingImage || product.image,
         imageUrls,
-        isVisible: setting?.isVisible ?? false,
+        specifications: setting?.specifications || product.specifications,
+        // Preserve the storefront when Supabase is temporarily unavailable or
+        // a new environment has not received its catalog seed yet. Explicit
+        // database visibility still wins, so administrators can hide products.
+        isVisible: setting?.isVisible ?? true,
         sortOrder: setting?.sortOrder ?? index + 1,
       }
     })
@@ -116,7 +129,8 @@ export function applyVariantSettings(
         price: setting?.price || variant.price,
         imageUrl: imageUrls[0],
         imageUrls,
-        isVisible: setting?.isVisible ?? false,
+        specifications: setting?.specifications || variant.specifications,
+        isVisible: setting?.isVisible ?? true,
         sortOrder: setting?.sortOrder ?? index + 1,
       }
     })

@@ -73,6 +73,7 @@ describe("catalog settings", () => {
 
     expect(thapRua?.price).toBe("950.000 ₫")
     expect(thapRua?.image).toBe("https://cdn.example/thap-rua.webp")
+    expect(thapRua?.listingImage).toBe("https://cdn.example/thap-rua.webp")
     expect(thapRua?.imageUrls).toHaveLength(2)
   })
 
@@ -83,15 +84,15 @@ describe("catalog settings", () => {
     expect(hiddenProduct?.isVisible).toBe(false)
   })
 
-  it("fails closed when a catalog row is missing", () => {
+  it("keeps the storefront visible when a catalog row is missing", () => {
     const unconfiguredProduct = products.find((product) => product.id === "p3")!
 
-    expect(applyCatalogSettings([unconfiguredProduct], [])).toEqual([])
+    expect(applyCatalogSettings([unconfiguredProduct], [])).toHaveLength(1)
     expect(
       applyCatalogSettings([unconfiguredProduct], [], true)[0],
     ).toMatchObject({
       id: "p3",
-      isVisible: false,
+      isVisible: true,
     })
   })
 

@@ -22,6 +22,8 @@ interface ModelViewer3DProps {
   onClose?: () => void
 }
 
+const CUSTOMER_AR_ENABLED = false
+
 export default function ModelViewer3D({
   src,
   iosSrc,
@@ -358,7 +360,7 @@ export default function ModelViewer3D({
 
         <div className="flex items-center gap-2 pointer-events-auto shrink-0">
           {/* Action: Open AR (Native iOS Quick Look sheet anchor vs Android Scene Viewer button) */}
-          {isIOS && iosSrc ? (
+          {CUSTOMER_AR_ENABLED && (isIOS && iosSrc ? (
             <a
               rel="ar"
               href={`${iosSrc.split("#")[0]}#allowsContentScaling=0`}
@@ -416,7 +418,7 @@ export default function ModelViewer3D({
                 {isArSupported ? "Xem AR" : "AR"}
               </span>
             </button>
-          )}
+          ))}
 
           {/* Single prominent Close button if onClose prop is passed */}
           {onClose && (
@@ -540,7 +542,7 @@ export default function ModelViewer3D({
       )}
 
       {/* AR Device Guidance Modal / Popover */}
-      {showArModal && (
+      {CUSTOMER_AR_ENABLED && showArModal && (
         <div
           className="absolute inset-0 z-40 flex items-center justify-center p-3 sm:p-4 bg-black/90 animate-fade-in overflow-y-auto"
           onClick={(e) => {

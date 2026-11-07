@@ -119,8 +119,8 @@ export default function Chatbox() {
         stripMarkdownForSpeech(reply),
       )
       utterance.lang = "vi-VN"
-      utterance.rate = 0.88
-      utterance.pitch = 1
+      utterance.rate = 0.93
+      utterance.pitch = 1.05
       if (voice) utterance.voice = voice
       utterance.onstart = () => {
         if (speechGeneration === speechGenerationRef.current)

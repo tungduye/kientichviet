@@ -41,8 +41,15 @@ describe("Vietnamese speech voice selection", () => {
     ).toBeUndefined()
   })
 
-  it("ranks common Vietnamese voices consistently", () => {
-    expect(vietnameseVoiceScore({ name: "Microsoft NamMinh", lang: "vi-VN" }))
+  it("prefers a generic Vietnamese voice over a known male voice", () => {
+    expect(vietnameseVoiceScore({ name: "Google Tiếng Việt", lang: "vi-VN" }))
+      .toBeGreaterThan(
+        vietnameseVoiceScore({ name: "Microsoft NamMinh", lang: "vi-VN" }),
+      )
+  })
+
+  it("prefers a named female Vietnamese voice", () => {
+    expect(vietnameseVoiceScore({ name: "Microsoft Linh Natural", lang: "vi-VN" }))
       .toBeGreaterThan(
         vietnameseVoiceScore({ name: "Google Tiếng Việt", lang: "vi-VN" }),
       )

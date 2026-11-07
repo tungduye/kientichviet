@@ -15,7 +15,6 @@ import {
   BookOpen,
   Compass,
   Layers,
-  Camera,
   X,
 } from "lucide-react"
 
@@ -193,7 +192,7 @@ export default function Heritage() {
         >
           {/* Background Heritage Image with centered crop */}
           <img
-            src={product.image}
+            src={product.listingImage || product.image}
             alt={product.name}
             style={{
               position: "absolute",
@@ -448,7 +447,7 @@ export default function Heritage() {
                         "Thuyết minh Di sản · Kiến Tích Việt"
                 }
                 heritageName={product.name}
-                coverImage={product.image}
+                coverImage={product.listingImage || product.image}
                 caption={
                   isThapRua
                     ? "Âm vang Hồ Gươm"
@@ -960,7 +959,7 @@ export default function Heritage() {
                       marginBottom: "8px",
                     }}
                   >
-                    MÔ HÌNH LẮP GHÉP GỖ NGUYÊN BẢN
+                    MÔ HÌNH LẮP GHÉP GỖ 3D
                   </p>
                   <h3
                     style={{
@@ -988,16 +987,20 @@ export default function Heritage() {
                     }}
                   >
                     <img
-                      src={product.image}
+                      src={product.listingImage || product.image}
                       alt={product.name}
                       style={{
                         width: "100%",
 
-                        height: "220px",
+                        height: "clamp(220px, 34vw, 340px)",
 
-                        objectFit: "cover",
+                        objectFit: "contain",
+
+                        objectPosition: "center",
 
                         display: "block",
+
+                        background: "#211014",
                       }}
                     />
                   </div>
@@ -1156,10 +1159,10 @@ export default function Heritage() {
                         margin: 0,
                       }}
                     >
-                      Trải nghiệm Không gian AR & 3D
+                      Trải nghiệm Mô hình 3D
                     </h3>
                     <span style={{ fontSize: "12px", color: "var(--gold)" }}>
-                      Thực tế tăng cường trên điện thoại
+                      Tương tác trên điện thoại và máy tính
                     </span>
                   </div>
                 </div>
@@ -1176,10 +1179,10 @@ export default function Heritage() {
                   }}
                 >
                   {isThapRua
-                    ? "Quan sát mô hình Tháp Rùa 3D từ nhiều góc nhìn, phóng to để khám phá từng chi tiết thiết kế. Với thiết bị hỗ trợ AR, bạn còn có thể đặt mô hình ảo vào không gian thực thông qua camera điện thoại."
+                    ? "Quan sát mô hình Tháp Rùa 3D từ nhiều góc nhìn, xoay và phóng to để khám phá từng chi tiết thiết kế."
                     : isHangTrong
-                      ? "Khám phá không gian kiến trúc phố Hàng Trống và tranh dân gian qua góc nhìn 3D trực quan cùng công nghệ thực tế tăng cường AR trên điện thoại."
-                      : "Chiêm ngưỡng từng chi tiết mộng gỗ di sản xoay 360 độ hoặc đặt trực tiếp mô hình vào không gian phòng của bạn thông qua camera và chip NFC gắn kèm sản phẩm."}
+                      ? "Khám phá kiến trúc phố Hàng Trống và tranh dân gian qua mô hình 3D trực quan, có thể xoay và thu phóng trên thiết bị của bạn."
+                      : "Quan sát mô hình di sản 3D từ nhiều góc nhìn, xoay 360 độ và phóng to từng chi tiết mộng gỗ."}
                 </p>
 
                 <div
@@ -1237,23 +1240,12 @@ export default function Heritage() {
                       }}
                     >
                       {product.modelUrl
-                        ? "Hỗ trợ iOS (QuickLook) & Android (WebXR)"
-                        : "Mô hình 3D & AR đang được hoàn thiện"}
+                        ? "Mô hình 3D tương tác · Xoay và thu phóng"
+                        : "Mô hình 3D đang được hoàn thiện"}
                     </span>
                   </div>
 
                   <div className="heritage-ar-actions">
-                    {product.modelUrl ? (
-                      <Link
-                        className="heritage-ar-camera-link"
-                        to={`/ar/${product.id}`}
-                      >
-                        <Camera size={17} />
-                        <span>Mở camera AR</span>
-                      </Link>
-                    ) : (
-                      <span className="heritage-ar-unavailable">AR sắp ra mắt</span>
-                    )}
                     <button
                       ref={open3DButtonRef}
                       type="button"
@@ -1636,7 +1628,7 @@ export default function Heritage() {
               <ModelViewer3D
                 src={product.modelUrl}
                 iosSrc={product.usdzUrl}
-                poster={product.image}
+                poster={product.listingImage || product.image}
                 alt={`Mô hình 3D tương tác ${product.name} - Di sản Kiến Tích Việt`}
                 title={product.name}
                 onClose={() => setIs3DModalOpen(false)}

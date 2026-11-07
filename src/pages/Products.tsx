@@ -63,7 +63,7 @@ export default function Products() {
                   className="product-image"
                   aria-label={`Xem ${product.name}`}
                 >
-                  <img src={product.image} alt={product.name} />
+                  <img src={product.listingImage || product.image} alt={product.name} />
                   {isUpcomingProduct(product) && (
                     <span className="product-coming-soon-overlay" aria-hidden="true">
                       COMING SOON

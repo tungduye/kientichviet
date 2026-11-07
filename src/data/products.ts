@@ -1,3 +1,12 @@
+export interface ProductSpecifications {
+  pieces: string
+  time: string
+  difficulty: string
+  material: string
+  size: string
+  audience: string
+}
+
 export interface Product {
   id: string
   slug: string
@@ -6,20 +15,13 @@ export interface Product {
   eyebrow: string
   price: string
   image: string
+  listingImage?: string
   number: string
   accent: string
   description: string
   modelUrl?: string
   usdzUrl?: string
-  specifications: {
-    pieces: string
-    time: string
-    difficulty: string
-    material: string
-    size: string
-    audience: string
-    weight: string
-  }
+  specifications: ProductSpecifications
   audioUrl?: string
   audioTitle?: string
   audioAuthor?: string
@@ -37,7 +39,8 @@ export const products: Product[] = [
     name: "Tháp Rùa",
     eyebrow: "Hà Nội · Hồ Gươm",
     price: "820.000 ₫",
-    image: "/images/thap-rua-angle-front.jpg",
+    image: "/images/thap-rua-product-main.png",
+    listingImage: "/images/thap-rua-angle-front.jpg",
     number: "02",
     accent: "Mới",
     description:
@@ -48,13 +51,12 @@ export const products: Product[] = [
     audioTitle: "Tháp Rùa — Biểu tượng giữa lòng Hồ Hoàn Kiếm",
     audioAuthor: "Thuyết minh Di sản · Kiến Tích Việt",
     specifications: {
-      pieces: "148",
-      time: "", // Bỏ thông tin thời gian lắp ghép theo feedback
-      difficulty: "Nâng cao",
-      material: "Gỗ sồi & bồ đề",
-      size: "15 × 15 × 38 cm",
-      audience: "14 tuổi trở lên",
-      weight: "620g",
+      pieces: "150",
+      time: "10 tiếng",
+      difficulty: "Trung bình",
+      material: "Gỗ basswood",
+      size: "20 × 20 × 30 cm",
+      audience: "15 tuổi trở lên",
     },
   },
   {
@@ -74,12 +76,11 @@ export const products: Product[] = [
     audioAuthor: "Thuyết minh Di sản · Kiến Tích Việt",
     specifications: {
       pieces: "xxx", // Cập nhật thành xxx mảnh theo feedback
-      time: "", // Bỏ số giờ lắp ghép theo feedback
-      difficulty: "Trung bình",
-      material: "Gỗ bồ đề tự nhiên",
-      size: "20 × 20 × 25 cm",
-      audience: "12 tuổi trở lên",
-      weight: "500g",
+      time: "Đang cập nhật",
+      difficulty: "Đang cập nhật",
+      material: "Đang cập nhật",
+      size: "Đang cập nhật",
+      audience: "Đang cập nhật",
     },
   },
   {
@@ -89,7 +90,10 @@ export const products: Product[] = [
     name: "Phố Hàng Trống",
     eyebrow: "Hà Nội · Phố cổ Hà Nội",
     price: "790.000 ₫",
-    image: "/images/pho-hang-trong.jpg",
+    image:
+      "https://veuzowtvsbxnyrfdbgfz.supabase.co/storage/v1/object/public/product-images/catalog/p3/91578fc6-8bae-48c4-954d-6622d9262801?v=1793870074128",
+    listingImage:
+      "https://veuzowtvsbxnyrfdbgfz.supabase.co/storage/v1/object/public/product-images/catalog/p3/91578fc6-8bae-48c4-954d-6622d9262801?v=1793870074128",
     number: "01",
     accent: "Bán chạy",
     description:
@@ -101,13 +105,12 @@ export const products: Product[] = [
       "Phố Hàng Trống — Nơi sắc màu dân gian lưu dấu giữa lòng Hà Nội",
     audioAuthor: "Thuyết minh Di sản · Kiến Tích Việt",
     specifications: {
-      pieces: "xxx", // Cập nhật thành xxx mảnh theo feedback
-      time: "", // Bỏ số giờ lắp ghép theo feedback
+      pieces: "211",
+      time: "5 tiếng",
       difficulty: "Trung bình",
-      material: "Gỗ bồ đề tự nhiên",
-      size: "18 × 18 × 22 cm",
-      audience: "12 tuổi trở lên",
-      weight: "450g",
+      material: "Gỗ basswood",
+      size: "15 × 15 × 15 cm",
+      audience: "15 tuổi trở lên",
     },
   },
 ].sort(

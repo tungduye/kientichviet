@@ -33,11 +33,26 @@ export function vietnameseVoiceScore(voice: VoiceDescriptor): number {
   const name = normalizeVoiceName(voice.name)
   let score = 100
 
-  if (name.includes("hoaimy") || name.includes("hoai my")) score += 1000
-  else if (name.includes("namminh") || name.includes("nam minh")) score += 900
+  const isFemaleVoice = [
+    "hoaimy",
+    "hoai my",
+    "female",
+    "woman",
+    "nu",
+    "linh",
+    "an",
+  ].some((marker) => name.split(" ").includes(marker) || name.includes(marker))
+  const isMaleVoice = ["namminh", "nam minh", "male", "man"].some(
+    (marker) => name.includes(marker),
+  )
+
+  if (name.includes("hoaimy") || name.includes("hoai my")) score += 1400
+  else if (isFemaleVoice) score += 1100
   else if (name.includes("google") && name.includes("tieng viet")) score += 800
   else if (name.includes("google")) score += 700
   else if (name.includes("microsoft")) score += 600
+
+  if (isMaleVoice) score -= 900
 
   if (name.includes("natural") || name.includes("online")) score += 200
   if (voice.lang.toLowerCase() === "vi-vn") score += 50

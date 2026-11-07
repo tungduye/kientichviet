@@ -9,6 +9,7 @@ import {
 } from "react"
 
 import { products as baseProducts, type Product } from "../data/products"
+import type { ProductSpecifications } from "../data/products"
 import {
   applyCatalogSettings,
   applyVariantSettings,
@@ -42,6 +43,7 @@ function mapCatalogSetting(row: {
   is_visible: boolean
   sort_order: number
   revision: number
+  specifications?: ProductSpecifications | null
 }): CatalogSetting {
   return {
     productKey: row.product_key,
@@ -53,6 +55,7 @@ function mapCatalogSetting(row: {
     isVisible: row.is_visible,
     sortOrder: row.sort_order,
     revision: row.revision,
+    specifications: row.specifications ?? null,
   }
 }
 
@@ -64,12 +67,23 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   const refresh = useCallback(async (showLoading = true) => {
     if (showLoading) setLoading(true)
 
-    const { data, error: catalogError } = await supabase
+    let { data, error: catalogError } = await supabase
       .from("product_catalog_settings")
       .select(
-        "product_key, product_id, variant_id, price, image_url, image_urls, is_visible, sort_order, revision",
+        "product_key, product_id, variant_id, price, image_url, image_urls, is_visible, sort_order, revision, specifications",
       )
       .order("sort_order")
+
+    if (catalogError?.code === "42703" || catalogError?.code === "PGRST204") {
+      const legacyResult = await supabase
+        .from("product_catalog_settings")
+        .select(
+          "product_key, product_id, variant_id, price, image_url, image_urls, is_visible, sort_order, revision",
+        )
+        .order("sort_order")
+      data = legacyResult.data
+      catalogError = legacyResult.error
+    }
 
     if (catalogError) {
       setError("Chưa tải được dữ liệu sản phẩm mới nhất.")

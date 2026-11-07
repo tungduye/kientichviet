@@ -137,6 +137,22 @@
   font: 500 14px/1.4 "Be Vietnam Pro", sans-serif;
 }
 .admin-file-field input { font-weight: 400; }
+.admin-specifications {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid #e3c9b8;
+  border-radius: 10px;
+}
+.admin-specifications legend {
+  padding: 0 6px;
+  color: #5f4b43;
+  font-size: 12px;
+  font-weight: 800;
+}
+.admin-specifications label { min-width: 0; }
 .admin-file-field span {
   color: #8a746b;
   font-size: 10px;
@@ -1276,8 +1292,8 @@ h3 {
 }
 
 .product-image {
-  aspect-ratio: 0.84;
-  background: var(--gold);
+  aspect-ratio: 5 / 6;
+  background: #ead8bf;
   border: 0;
   cursor: pointer;
   display: block;
@@ -1301,6 +1317,7 @@ h3 {
   filter: sepia(0.2) saturate(0.88) brightness(1);
   height: 100%;
   object-fit: cover;
+  object-position: center;
   transition: transform 0.65s var(--ease-out), filter 0.5s ease;
   width: 100%;
 }
@@ -1322,7 +1339,7 @@ h3 {
 
 .product-card:hover .product-image img {
   filter: sepia(0.08) saturate(1) brightness(1.04);
-  transform: scale(1.05);
+  transform: scale(1.015);
 }
 
 .product-number {
@@ -1893,7 +1910,7 @@ footer { background: var(--red-dark); color: var(--cream); padding: 80px clamp(2
   .products-head { align-items: flex-start; flex-direction: column; gap: 30px; }
   .product-grid { grid-template-columns: 1fr; margin-top: 50px; }
   .product-card:nth-child(2) { margin-top: 0; }
-  .product-image { aspect-ratio: 0.9; }
+  .product-image { aspect-ratio: 5 / 6; }
   .phone { height: 515px; width: 260px; }
   .tech-visual { height: 560px; }
   .pulse-one { height: 350px; width: 350px; }
@@ -2829,7 +2846,7 @@ h2 { letter-spacing: -0.015em !important; }
 .product-card.reveal.is-in:hover, .step-card.reveal.is-in:hover, .product-card:not(.reveal):hover, .step-card:not(.reveal):hover { transform: translate3d(0, -6px, 0); box-shadow: 0 24px 48px -18px rgba(143, 0, 25, 0.35); }
 .product-image { overflow: hidden; }
 .product-image img { transition: transform 0.6s var(--ease-out), filter 0.4s ease; }
-.product-card:hover .product-image img { transform: scale(1.05); }
+.product-card:hover .product-image img { transform: scale(1.015); }
 .product-card.is-upcoming .product-image img,
 .product-card.is-upcoming:hover .product-image img {
   filter: grayscale(0.7) blur(2px) brightness(0.78);
@@ -3103,9 +3120,10 @@ iframe {
 .product-detail-gallery {
   align-self: start;
   width: 100%;
-  height: min(72vh, 760px);
-  min-height: 540px;
-  max-height: 760px;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  aspect-ratio: 5 / 6;
   overflow: hidden;
   border-radius: 14px;
   background: #f4e4d0;
@@ -3119,6 +3137,7 @@ iframe {
   height: 100%;
   object-fit: cover;
   object-position: center;
+  filter: none;
 }
 
 .product-detail-gallery > img.variant-image-upcoming {
@@ -3166,7 +3185,7 @@ iframe {
 .upcoming-product-visual img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   filter: blur(6px) grayscale(0.45) saturate(0.58) brightness(0.68);
   transform: scale(1.12);
 }
@@ -3367,7 +3386,7 @@ iframe {
     height: auto;
     min-height: 0;
     max-height: none;
-    aspect-ratio: 1.16 / 1;
+    aspect-ratio: 5 / 6;
   }
   .product-detail-layout .modal-copy { padding: clamp(24px, 5vw, 42px); }
   .product-reviews-grid { grid-template-columns: minmax(0, 1fr); }
@@ -3388,7 +3407,7 @@ iframe {
   .section-heading h2 { font-size: clamp(32px, 9vw, 42px); line-height: 1.12; }
   .product-detail-shell { padding: 104px 14px 42px; }
   .product-modal.product-detail-layout { border-radius: 14px; }
-  .product-detail-gallery { aspect-ratio: 1.08 / 1; border-radius: 14px 14px 0 0; }
+  .product-detail-gallery { aspect-ratio: 5 / 6; border-radius: 14px 14px 0 0; }
   .product-detail-layout .modal-copy { padding: 25px 18px 30px; }
   .product-detail-layout .modal-copy h2 { margin-bottom: 18px; font-size: clamp(36px, 10vw, 48px); }
   .product-detail-layout .variant-options { grid-template-columns: minmax(0, 1fr); gap: 8px; }
@@ -3423,7 +3442,7 @@ iframe {
   .hero-stat-card span,
   .hero-stat-card strong { overflow-wrap: anywhere; }
   .product-grid { grid-template-columns: minmax(0, 1fr); gap: 18px; }
-  .product-image { aspect-ratio: 1.05 / 1; }
+  .product-image { aspect-ratio: 5 / 6; }
   .product-info { padding: 20px 18px; }
   .product-title { font-size: 23px; }
   .product-price-row { gap: 10px; }
@@ -3454,6 +3473,7 @@ iframe {
   .admin-product-image { height: auto; min-height: 0; aspect-ratio: 4 / 3; }
   .admin-product-image img { width: 100%; height: 100%; object-fit: contain; }
   .admin-product-fields { min-width: 0; padding: 18px; }
+  .admin-specifications { grid-template-columns: minmax(0, 1fr); }
   .admin-gallery { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); }
   .admin-tabs { margin-inline: -2px; }
   .admin-content-group,
