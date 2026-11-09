@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom"
-import { lazy, Suspense } from "react"
 
 import MainLayout from "./components/layout/MainLayout"
 
@@ -25,7 +24,6 @@ import { CatalogProvider } from "./context/CatalogContext"
 
 import AdminCatalog from "./pages/AdminCatalog"
 import { SiteContentProvider } from "./context/SiteContentContext"
-const ArExperience = lazy(() => import("./pages/ArExperience"))
 
 export default function App() {
   return (
@@ -36,20 +34,6 @@ export default function App() {
           <CartProvider>
             <Routes>
               <Route path="/quan-tri" element={<AdminCatalog />} />
-              <Route
-                path="/ar/:productId"
-                element={
-                  <Suspense
-                    fallback={
-                      <main className="ar-page">
-                        Đang tải trải nghiệm AR...
-                      </main>
-                    }
-                  >
-                    <ArExperience />
-                  </Suspense>
-                }
-              />
               <Route path="/" element={<MainLayout />}>
                 <Route index element={<Home />} />
                 <Route path="our-story" element={<OurStory />} />

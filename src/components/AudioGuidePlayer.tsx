@@ -177,6 +177,7 @@ export default function AudioGuidePlayer({
 
     const newTime = Math.min(
       Math.max(audioRef.current.currentTime + delta, 0),
+
       duration || 0,
     )
 
@@ -701,7 +702,9 @@ export default function AudioGuidePlayer({
             className="absolute top-3 left-4 z-10 flex items-center gap-2 pointer-events-none px-2.5 py-0.5 rounded-full"
             style={{
               background: "rgba(0, 0, 0, 0.45)",
+
               border: "1px solid rgba(255, 209, 141, 0.22)",
+
               backdropFilter: "blur(6px)",
             }}
           >
@@ -759,6 +762,7 @@ export default function AudioGuidePlayer({
           <div className="relative group">
             <input
               type="range"
+              aria-label="Tiến độ phát thuyết minh"
               min={0}
               max={duration || 100}
               step={0.1}
@@ -842,6 +846,7 @@ export default function AudioGuidePlayer({
             </button>
             <input
               type="range"
+              aria-label="Âm lượng thuyết minh"
               min={0}
               max={1}
               step={0.05}

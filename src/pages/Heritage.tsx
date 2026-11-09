@@ -15,7 +15,6 @@ import {
   BookOpen,
   Compass,
   Layers,
-  Camera,
   X,
 } from "lucide-react"
 
@@ -23,6 +22,10 @@ import ModelViewer3D from "../components/ModelViewer3D"
 
 import HeritageHub from "../components/HeritageHub"
 import { isUpcomingProduct } from "../data/products"
+import {
+  getHeritageImage,
+  getHeritageImageAspectRatio,
+} from "../features/heritage/heritageImages"
 
 export default function Heritage() {
   const { products, findProduct } = useCatalog()
@@ -158,11 +161,7 @@ export default function Heritage() {
   const isThapRua = product.slug === "thap-rua"
   const isChuaMotCot = product.slug === "chua-mot-cot"
   const isHangTrong = product.slug === "pho-hang-trong"
-  const heritageImage = isThapRua
-    ? "/images/thap-rua-product-main.png"
-    : isHangTrong
-      ? "/images/pho-hang-trong-heritage-horizontal.png"
-      : product.listingImage || product.image
+  const heritageImage = getHeritageImage(product)
 
   return (
     <div
@@ -998,9 +997,11 @@ export default function Heritage() {
                       style={{
                         width: "100%",
 
-                        height: "clamp(220px, 34vw, 340px)",
+                        height: "auto",
 
-                        objectFit: "contain",
+                        aspectRatio: getHeritageImageAspectRatio(product.slug),
+
+                        objectFit: "cover",
 
                         objectPosition: "center",
 
@@ -1185,9 +1186,9 @@ export default function Heritage() {
                   }}
                 >
                   {isThapRua
-                    ? "Quan sát mô hình Tháp Rùa 3D từ nhiều góc nhìn, phóng to từng chi tiết hoặc mở camera để quét ảnh sản phẩm và trải nghiệm AR."
+                    ? "Quan sát mô hình Tháp Rùa 3D từ nhiều góc nhìn, sau đó đặt mô hình vào không gian thật bằng camera điện thoại."
                     : isHangTrong
-                      ? "Khám phá kiến trúc phố Hàng Trống và tranh dân gian qua mô hình 3D trực quan cùng trải nghiệm camera AR trên điện thoại."
+                      ? "Khám phá kiến trúc phố Hàng Trống qua mô hình 3D và đặt mô hình vào không gian thật bằng camera điện thoại."
                       : "Quan sát mô hình di sản 3D từ nhiều góc nhìn hoặc đặt mô hình ảo vào không gian thực bằng camera điện thoại."}
                 </p>
 
@@ -1246,25 +1247,12 @@ export default function Heritage() {
                       }}
                     >
                       {product.modelUrl
-                        ? "Hỗ trợ camera AR & mô hình 3D tương tác"
+                        ? "Mô hình 3D tương tác & AR không gian thực"
                         : "Mô hình 3D & AR đang được hoàn thiện"}
                     </span>
                   </div>
 
                   <div className="heritage-ar-actions">
-                    {product.modelUrl ? (
-                      <Link
-                        className="heritage-ar-camera-link"
-                        to={`/ar/${product.id}`}
-                      >
-                        <Camera size={17} />
-                        <span>Mở camera AR</span>
-                      </Link>
-                    ) : (
-                      <span className="heritage-ar-unavailable">
-                        AR sắp ra mắt
-                      </span>
-                    )}
                     <button
                       ref={open3DButtonRef}
                       type="button"
@@ -1433,7 +1421,7 @@ export default function Heritage() {
                     <div>
                       <div
                         style={{
-                          height: "210px",
+                          aspectRatio: getHeritageImageAspectRatio(p.slug),
 
                           overflow: "hidden",
 
@@ -1441,7 +1429,7 @@ export default function Heritage() {
                         }}
                       >
                         <img
-                          src={p.image}
+                          src={getHeritageImage(p)}
                           alt={p.name}
                           style={{
                             width: "100%",

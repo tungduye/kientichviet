@@ -59,7 +59,7 @@ Hai câu chuyện chính:
 Hướng dẫn lắp ghép an toàn: kiểm tra và phân nhóm chi tiết theo hướng dẫn trong hộp; lắp thử trước khi ép khớp; đi lần lượt từ phần đế lên tầng cao; đặt mô hình trên mặt phẳng; không dùng lực mạnh hoặc tự ý dùng keo khi hướng dẫn không yêu cầu; chi tiết chính xác của từng bước phải theo sách hướng dẫn đi kèm bộ sản phẩm.
 
 NFC: dùng điện thoại có NFC, bật NFC nếu thiết bị yêu cầu rồi chạm vùng NFC của điện thoại vào thẻ/điểm chạm trên sản phẩm để mở trang nội dung di sản. NFC không tự cài ứng dụng.
-Trải nghiệm số: khách hàng có thể mở mô hình 3D, xoay và phóng to để quan sát. Với sản phẩm đã có mô hình 3D, khách cũng có thể mở camera Web AR để quét ảnh mục tiêu và xem mô hình tăng cường trên điện thoại.
+Trải nghiệm số: khách hàng có thể mở mô hình 3D, xoay và phóng to để quan sát. Với sản phẩm đã có mô hình 3D, khách có thể bấm nút AR trong trình xem để đặt mô hình vào không gian thật bằng camera điện thoại qua Apple Quick Look hoặc Android Scene Viewer/WebXR.
 
 Chưa được cung cấp: tồn kho và chính sách đổi trả/vận chuyển/bảo hành.`
 

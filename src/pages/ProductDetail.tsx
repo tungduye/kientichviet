@@ -313,11 +313,6 @@ export default function ProductDetail() {
                 <Icon name="bag" />
               </button>
             </div>
-            {product.modelUrl && !isProductUpcoming && (
-              <Link className="product-ar-link" to={`/ar/${product.id}`}>
-                <Icon name="phone" /> Mở camera trải nghiệm Web AR
-              </Link>
-            )}
           </div>
         </div>
       </div>

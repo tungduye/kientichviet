@@ -49,6 +49,22 @@ const chapters = [
   },
 ]
 
+function renderWithStraightHyphen(text: string) {
+  const parts = text.split(" - ")
+
+  return parts.map((part, index) => (
+    <span key={`${part}-${index}`}>
+      {index > 0 && (
+        <>
+          {" "}
+          <span className="straight-hyphen">-</span>{" "}
+        </>
+      )}
+      {part}
+    </span>
+  ))
+}
+
 export default function OurStory() {
   return (
     <>
@@ -56,9 +72,15 @@ export default function OurStory() {
         <div className="reveal">
           <p className="kicker">Về chúng tôi · Thương hiệu</p>
           <h1>
-            Kiến Tích Việt là công ty nghiên cứu, sản xuất mô hình lắp ráp 3D
-            tái hiện những công trình kiến trúc và di sản Việt Nam kết hợp trải
-            nghiệm công nghệ
+            <span className="story-title-desktop">
+              Kiến Tích Việt là công ty nghiên cứu, sản xuất mô hình lắp ráp 3D
+              tái hiện những công trình kiến trúc và di sản Việt Nam kết hợp
+              trải nghiệm công nghệ
+            </span>
+            <span className="story-title-mobile">
+              Kiến Tích Việt tái hiện di sản Việt bằng mô hình lắp ráp 3D và
+              công nghệ
+            </span>
           </h1>
           <p className="lead">
             Với triết lí <em>“Lấy di sản làm gốc, lấy sáng tạo làm cầu nối”</em>
@@ -137,7 +159,7 @@ export default function OurStory() {
             <h3>{c.title}</h3>
             {c.body.map((t) => (
               <p className="body" key={t}>
-                {t}
+                {renderWithStraightHyphen(t)}
               </p>
             ))}
           </div>
@@ -156,7 +178,8 @@ export default function OurStory() {
           >
             Mô hình hoàn thiện mới chỉ là khởi đầu. Mảnh ghép vật lý kết hợp
             công nghệ tương tác đánh thức tư liệu, hình ảnh và âm thanh của quá
-            khứ - biến quan sát thụ động thành trải nghiệm văn hóa trọn vẹn.
+            khứ <span className="straight-hyphen">-</span> biến quan sát thụ
+            động thành trải nghiệm văn hóa trọn vẹn.
           </p>
           <div className="journey-steps">
             {["Nhìn", "Lắp ghép", "Khám phá", "Cảm nhận", "Hiểu"].map(

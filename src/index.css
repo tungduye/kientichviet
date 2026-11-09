@@ -1994,6 +1994,15 @@ h2 { letter-spacing: -0.015em !important; }
   line-height: 1.35;
   margin-bottom: 24px;
 }
+.story-title-mobile { display: none; }
+.straight-hyphen {
+  display: inline-block;
+  font-family: Arial, sans-serif;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 1;
+  transform: none;
+}
 .story-hero p.lead {
   font-size: 18px;
   line-height: 1.75;
@@ -3493,11 +3502,13 @@ iframe {
   }
   .story-hero h1 {
     margin-bottom: 18px;
-    font-size: clamp(30px, 8.7vw, 40px);
-    line-height: 1.16;
+    font-size: clamp(27px, 7.7vw, 34px);
+    line-height: 1.2;
     overflow-wrap: normal;
     word-break: normal;
   }
+  .story-title-desktop { display: none; }
+  .story-title-mobile { display: inline; }
   .story-hero p.lead { font-size: 16px; line-height: 1.68; }
   .story-hero-logo { padding: 28px; }
   .story-hero-logo img { width: min(62%, 210px); }

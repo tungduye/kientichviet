@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react"
+
 import {
   RotateCcw,
   Play,
@@ -15,56 +16,81 @@ import {
 
 interface ModelViewer3DProps {
   src: string
+
   iosSrc?: string
+
   poster?: string
+
   alt: string
+
   title?: string
+
   onClose?: () => void
 }
 
-const CUSTOMER_AR_ENABLED = false
-
 export default function ModelViewer3D({
   src,
+
   iosSrc,
+
   poster,
+
   alt,
+
   title = "Mô hình 3D tương tác",
+
   onClose,
 }: ModelViewer3DProps) {
   const viewerRef = useRef<any>(null)
+
   const containerRef = useRef<HTMLDivElement>(null)
+
   const [isLoading, setIsLoading] = useState(true)
+
   const [loadProgress, setLoadProgress] = useState(0)
+
   const [hasError, setHasError] = useState(false)
 
   // Disable autoRotate by default on mobile devices to preserve frame rate and battery
+
   const [autoRotate, setAutoRotate] = useState(() => {
     if (typeof window !== "undefined") {
       const isMobile =
         window.matchMedia("(max-width: 768px)").matches ||
         "ontouchstart" in window
+
       return !isMobile
     }
+
     return false
   })
 
   const [isArSupported, setIsArSupported] = useState(false)
+
   const [showArModal, setShowArModal] = useState(false)
+
   const [showControlsHint, setShowControlsHint] = useState(true)
+
   const [loadKey, setLoadKey] = useState(0)
+
   const [isMobileDevice, setIsMobileDevice] = useState(false)
+
   const [isIOS, setIsIOS] = useState(false)
+
   const [isAndroid, setIsAndroid] = useState(false)
 
   // Detect mobile device & OS platform
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const ua = navigator.userAgent || ""
+
       const ios =
         /iPhone|iPad|iPod/i.test(ua) ||
         (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+
       const android = /Android/i.test(ua)
+
       const mobile =
         ios ||
         android ||
@@ -72,24 +98,29 @@ export default function ModelViewer3D({
         "ontouchstart" in window
 
       setIsIOS(ios)
+
       setIsAndroid(android)
+
       setIsMobileDevice(mobile)
     }
   }, [])
 
   const checkArSupport = useCallback(() => {
     const el = viewerRef.current
+
     if (el) {
       if (typeof el.canActivateAR === "boolean") {
         setIsArSupported(el.canActivateAR)
       } else {
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+
         setIsArSupported(isMobile)
       }
     }
   }, [])
 
   // Dynamically load @google/model-viewer runtime bundle
+
   useEffect(() => {
     let mounted = true
 
@@ -98,39 +129,52 @@ export default function ModelViewer3D({
 
       if (customElements.get("model-viewer")) {
         if (mounted) checkArSupport()
+
         return
       }
 
       const existingScript = document.querySelector(
         'script[data-model-viewer="true"]',
       )
+
       if (existingScript) {
         existingScript.addEventListener("load", () => {
           if (mounted) checkArSupport()
         })
+
         return
       }
 
       // Try dynamic import (Vite code-splits if available) or fallback to official Google CDN
+
       try {
         await import("@google/model-viewer")
+
         if (mounted) checkArSupport()
       } catch {
         const script = document.createElement("script")
+
         script.type = "module"
+
         script.src =
           "https://ajax.googleapis.com/ajax/libs/model-viewer/4.3.1/model-viewer.min.js"
+
         script.setAttribute("data-model-viewer", "true")
+
         script.onload = () => {
           if (mounted) checkArSupport()
         }
+
         script.onerror = (err) => {
           console.error("Lỗi nạp thư viện model-viewer:", err)
+
           if (mounted) {
             setHasError(true)
+
             setIsLoading(false)
           }
         }
+
         document.head.appendChild(script)
       }
     }
@@ -143,28 +187,37 @@ export default function ModelViewer3D({
   }, [checkArSupport])
 
   // Bind model-viewer custom events and lifecycle cleanup
+
   useEffect(() => {
     const el = viewerRef.current
+
     if (!el) return
 
     setIsLoading(true)
+
     setHasError(false)
+
     setLoadProgress(0)
 
     const handleLoad = () => {
       setIsLoading(false)
+
       setHasError(false)
+
       checkArSupport()
     }
 
     const handleProgress = (event: any) => {
       const progress = event?.detail?.totalProgress ?? 0
+
       setLoadProgress(Math.min(100, Math.round(progress * 100)))
     }
 
     const handleError = (error: any) => {
       console.error("Lỗi khi tải tệp GLB:", error)
+
       setIsLoading(false)
+
       setHasError(true)
     }
 
@@ -175,39 +228,51 @@ export default function ModelViewer3D({
     }
 
     el.addEventListener("load", handleLoad)
+
     el.addEventListener("progress", handleProgress)
+
     el.addEventListener("error", handleError)
+
     el.addEventListener("ar-status", handleArStatus)
 
     // Re-check AR support once model element upgrades
+
     if (typeof el.canActivateAR === "boolean") {
       setIsArSupported(el.canActivateAR)
     }
 
     return () => {
       el.removeEventListener("load", handleLoad)
+
       el.removeEventListener("progress", handleProgress)
+
       el.removeEventListener("error", handleError)
+
       el.removeEventListener("ar-status", handleArStatus)
     }
   }, [src, loadKey, checkArSupport])
 
   // Instant recovery hook for iOS Cancel / Quick Look exit
+
   useEffect(() => {
     const handleViewerRecovery = () => {
       // Remove any stuck focus or active state from button/link
+
       if (document.activeElement instanceof HTMLElement) {
         document.activeElement.blur()
       }
 
       // Invalidate layout to force Safari WebKit to repaint canvas
+
       window.dispatchEvent(new Event("resize"))
 
       const el = viewerRef.current
+
       if (el) {
         if (typeof el.dismissPoster === "function") {
           el.dismissPoster()
         }
+
         if (typeof el.jumpCameraToGoal === "function") {
           el.jumpCameraToGoal()
         }
@@ -215,6 +280,7 @@ export default function ModelViewer3D({
     }
 
     window.addEventListener("focus", handleViewerRecovery)
+
     window.addEventListener("pageshow", handleViewerRecovery)
 
     const handleVisibilityChange = () => {
@@ -222,28 +288,36 @@ export default function ModelViewer3D({
         handleViewerRecovery()
       }
     }
+
     document.addEventListener("visibilitychange", handleVisibilityChange)
 
     return () => {
       window.removeEventListener("focus", handleViewerRecovery)
+
       window.removeEventListener("pageshow", handleViewerRecovery)
+
       document.removeEventListener("visibilitychange", handleVisibilityChange)
     }
   }, [])
 
   // Hide the initial controls hint after 5 seconds
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowControlsHint(false)
     }, 5000)
+
     return () => clearTimeout(timer)
   }, [])
 
   const handleResetCamera = useCallback(() => {
     const el = viewerRef.current
+
     if (el) {
       el.cameraOrbit = "40deg 75deg 105%"
+
       el.cameraTarget = "auto auto auto"
+
       if (typeof el.jumpCameraToGoal === "function") {
         el.jumpCameraToGoal()
       }
@@ -252,9 +326,12 @@ export default function ModelViewer3D({
 
   const handleToggleAutoRotate = useCallback(() => {
     const el = viewerRef.current
+
     if (el) {
       const next = !autoRotate
+
       setAutoRotate(next)
+
       if (next) {
         el.setAttribute("auto-rotate", "")
       } else {
@@ -265,11 +342,13 @@ export default function ModelViewer3D({
 
   const handleArClick = useCallback(() => {
     const el = viewerRef.current
+
     if (el && isArSupported && typeof el.activateAR === "function") {
       try {
         el.activateAR()
       } catch (e) {
         console.warn("Không thể mở AR trực tiếp, hiển thị bảng hướng dẫn:", e)
+
         setShowArModal(true)
       }
     } else {
@@ -284,15 +363,38 @@ export default function ModelViewer3D({
   return (
     <div
       ref={containerRef}
+      onPointerDown={() => setShowControlsHint(false)}
+      onWheel={() => setShowControlsHint(false)}
+      onTouchStart={() => setShowControlsHint(false)}
       className="model-viewer-container relative w-full h-full min-h-[340px] sm:min-h-[460px] md:min-h-[580px] lg:min-h-[640px] flex flex-col items-center justify-center overflow-hidden select-none"
       style={{
         background:
           "radial-gradient(circle at 50% 40%, #2f1015 0%, #19090c 65%, #0e0406 100%)",
+
         border: "1px solid rgba(255, 209, 141, 0.2)",
       }}
       role="region"
       aria-label={alt}
     >
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255, 209, 141, 0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 209, 141, 0.045) 1px, transparent 1px)",
+
+          backgroundSize: "36px 36px",
+        }}
+      />
+      <div
+        className="absolute bottom-[10%] left-1/2 -translate-x-1/2 w-[65%] max-w-[520px] h-[72px] rounded-full pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(ellipse at center, rgba(255, 209, 141, 0.14) 0%, rgba(143, 0, 25, 0.16) 50%, transparent 75%)",
+
+          filter: "blur(10px)",
+        }}
+      />
+
       {/* 3D Web Component with Adaptive Resolution & High-Performance flags */}
       <model-viewer
         ref={viewerRef}
@@ -324,9 +426,13 @@ export default function ModelViewer3D({
         interaction-prompt="none"
         style={{
           width: "100%",
+
           height: "100%",
+
           minHeight: "100%",
+
           display: hasError ? "none" : "block",
+
           outline: "none",
         }}
       >
@@ -346,8 +452,15 @@ export default function ModelViewer3D({
           paddingTop: "env(safe-area-inset-top, 0px)",
         }}
       >
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/75 backdrop-blur-md border border-[var(--gold)]/30 pointer-events-auto shrink-0 max-w-[55%] sm:max-w-none truncate shadow-lg">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#34d399] shrink-0" />
+        <div
+          className="flex items-center gap-2 px-3.5 py-2 rounded-full backdrop-blur-md pointer-events-auto shrink-0 max-w-[55%] sm:max-w-none truncate shadow-lg"
+          style={{
+            background: "rgba(74, 8, 20, 0.92)",
+
+            border: "1px solid rgba(255, 209, 141, 0.4)",
+          }}
+        >
+          <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] shrink-0" />
           <span
             className="text-xs sm:text-sm font-semibold tracking-wide text-[#fff7ec] truncate"
             style={{
@@ -360,7 +473,7 @@ export default function ModelViewer3D({
 
         <div className="flex items-center gap-2 pointer-events-auto shrink-0">
           {/* Action: Open AR (Native iOS Quick Look sheet anchor vs Android Scene Viewer button) */}
-          {CUSTOMER_AR_ENABLED && (isIOS && iosSrc ? (
+          {isIOS && iosSrc ? (
             <a
               rel="ar"
               href={`${iosSrc.split("#")[0]}#allowsContentScaling=0`}
@@ -368,8 +481,11 @@ export default function ModelViewer3D({
               style={{
                 background:
                   "linear-gradient(135deg, rgba(255, 209, 141, 0.95) 0%, rgba(232, 186, 117, 0.95) 100%)",
+
                 color: "#351b18",
+
                 border: "1px solid rgba(255, 209, 141, 0.5)",
+
                 boxShadow: "0 4px 15px rgba(0, 0, 0, 0.4)",
               }}
               title="Khám phá trong không gian thực qua Apple AR Quick Look"
@@ -393,8 +509,11 @@ export default function ModelViewer3D({
               style={{
                 background:
                   "linear-gradient(135deg, rgba(255, 209, 141, 0.95) 0%, rgba(232, 186, 117, 0.95) 100%)",
+
                 color: "#351b18",
+
                 border: "1px solid rgba(255, 209, 141, 0.5)",
+
                 boxShadow: "0 4px 15px rgba(0, 0, 0, 0.4)",
               }}
               title={
@@ -418,14 +537,19 @@ export default function ModelViewer3D({
                 {isArSupported ? "Xem AR" : "AR"}
               </span>
             </button>
-          ))}
+          )}
 
           {/* Single prominent Close button if onClose prop is passed */}
           {onClose && (
             <button
               type="button"
               onClick={onClose}
-              className="min-h-[44px] min-w-[44px] px-3.5 py-2 rounded-full bg-black/80 hover:bg-[#8f0019]/90 active:scale-95 text-[#fff7ec] border border-[var(--gold)]/40 backdrop-blur-md transition-all shadow-lg flex items-center justify-center gap-1.5 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 shrink-0"
+              className="min-h-[44px] min-w-[44px] px-3.5 py-2 rounded-full hover:brightness-110 active:scale-95 text-[#fff7ec] backdrop-blur-md transition-all shadow-lg flex items-center justify-center gap-1.5 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 shrink-0"
+              style={{
+                background: "rgba(94, 0, 18, 0.92)",
+
+                border: "1px solid rgba(255, 209, 141, 0.45)",
+              }}
               aria-label="Đóng khung nhìn 3D"
               title="Đóng khung nhìn 3D (Esc)"
             >
@@ -441,8 +565,12 @@ export default function ModelViewer3D({
       {/* Interactive Controls Bar (Bottom Center) - Responsive for 320px - 430px */}
       {!isLoading && !hasError && (
         <div
-          className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-black/80 backdrop-blur-md border border-[var(--gold)]/30 shadow-2xl pointer-events-auto max-w-[95vw] sm:max-w-[90vw]"
+          className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1 sm:gap-2 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full backdrop-blur-md shadow-2xl pointer-events-auto max-w-[95vw] sm:max-w-[90vw]"
           style={{
+            background: "rgba(74, 8, 20, 0.92)",
+
+            border: "1px solid rgba(255, 209, 141, 0.4)",
+
             paddingBottom: "max(6px, env(safe-area-inset-bottom, 6px))",
           }}
         >
@@ -542,7 +670,7 @@ export default function ModelViewer3D({
       )}
 
       {/* AR Device Guidance Modal / Popover */}
-      {CUSTOMER_AR_ENABLED && showArModal && (
+      {showArModal && (
         <div
           className="absolute inset-0 z-40 flex items-center justify-center p-3 sm:p-4 bg-black/90 animate-fade-in overflow-y-auto"
           onClick={(e) => {
@@ -553,6 +681,7 @@ export default function ModelViewer3D({
             className="max-w-md w-full p-5 sm:p-6 rounded-2xl border text-center shadow-2xl relative my-auto"
             style={{
               background: "linear-gradient(145deg, #2a1116 0%, #17090c 100%)",
+
               borderColor: "rgba(255, 209, 141, 0.35)",
             }}
           >

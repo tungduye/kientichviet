@@ -3,6 +3,10 @@ import { Link } from "react-router-dom"
 import { useCatalog } from "../context/CatalogContext"
 import { useSiteContent } from "../context/SiteContentContext"
 import { isUpcomingProduct } from "../data/products"
+import {
+  getHeritageImage,
+  getHeritageImageAspectRatio,
+} from "../features/heritage/heritageImages"
 
 import {
   Sparkles,
@@ -437,7 +441,9 @@ export default function HeritageHub() {
                         style={{
                           display: "block",
 
-                          height: "250px",
+                          height: "auto",
+
+                          aspectRatio: getHeritageImageAspectRatio(p.slug),
 
                           overflow: "hidden",
 
@@ -445,13 +451,7 @@ export default function HeritageHub() {
                         }}
                       >
                         <img
-                          src={
-                            p.slug === "thap-rua"
-                              ? "/images/thap-rua-product-main.png"
-                              : p.slug === "pho-hang-trong"
-                                ? "/images/pho-hang-trong-heritage-horizontal.png"
-                                : p.image
-                          }
+                          src={getHeritageImage(p)}
                           alt={p.name}
                           style={{
                             width: "100%",
