@@ -203,7 +203,7 @@ export function Logo({
 
   return (
     <Link
-      aria-label="Kiến Tích Việt — Về đầu trang"
+      aria-label="Kiến Tích Việt - Về đầu trang"
       className={`brand-logo ${
         horizontal ? "brand-logo-horizontal" : "brand-logo-vertical"
       } ${light ? "is-light" : ""}`}

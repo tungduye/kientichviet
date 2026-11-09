@@ -45,15 +45,15 @@ function isRateLimited(
 }
 
 const OFFICIAL_DATA = `
-Thương hiệu: Kiến Tích Việt — mô hình lắp ghép gỗ di sản Việt Nam. Slogan: "Dựng hình di sản, nối nhịp thời gian". Hành trình sản phẩm: mở hộp → lắp ghép → hoàn thiện và trưng bày → chạm NFC để mở nội dung số → nghe câu chuyện và khám phá mô hình 3D trên điện thoại.
+Thương hiệu: Kiến Tích Việt - mô hình lắp ghép gỗ di sản Việt Nam. Slogan: "Dựng hình di sản, nối nhịp thời gian". Hành trình sản phẩm: mở hộp → lắp ghép → hoàn thiện và trưng bày → chạm NFC để mở nội dung số → nghe câu chuyện và khám phá mô hình 3D trên điện thoại.
 
 Sản phẩm:
-1. Tháp Rùa (Hà Nội · Hồ Gươm): Basic và Signature — 150 mảnh — 10 tiếng — độ khó trung bình — gỗ basswood — kích thước 20 × 20 × 30 cm — từ 15 tuổi. Premium — 150 mảnh — 15 tiếng — độ khó nâng cao — gỗ basswood kết hợp khảm đá mosaic — kích thước 20 × 20 × 30 cm — từ 15 tuổi. Giá: Basic 369.000₫; Signature 499.000₫; Premium 669.000₫.
-2. Phố Hàng Trống (Hà Nội · Phố cổ Hà Nội): Basic và Signature — 211 mảnh — 5 tiếng — độ khó trung bình — gỗ basswood — kích thước 15 × 15 × 15 cm — từ 15 tuổi. Giá: Basic 219.000₫; Signature 289.000₫. Không có phiên bản Premium.
-3. Chùa Một Cột — sản phẩm COMING SOON. Số mảnh: xxx mảnh. Các thông số khác đang cập nhật; trợ lý chỉ giới thiệu ngắn gọn, chưa kể thành tuyến câu chuyện chính.
+1. Tháp Rùa (Hà Nội · Hồ Gươm): Basic và Signature - 150 mảnh - 10 tiếng - độ khó trung bình - gỗ basswood - kích thước 20 × 20 × 30 cm - từ 15 tuổi. Premium - 150 mảnh - 15 tiếng - độ khó nâng cao - gỗ basswood kết hợp khảm đá mosaic - kích thước 20 × 20 × 30 cm - từ 15 tuổi. Giá: Basic 369.000₫; Signature 499.000₫; Premium 669.000₫.
+2. Phố Hàng Trống (Hà Nội · Phố cổ Hà Nội): Basic và Signature - 211 mảnh - 5 tiếng - độ khó trung bình - gỗ basswood - kích thước 15 × 15 × 15 cm - từ 15 tuổi. Giá: Basic 219.000₫; Signature 289.000₫. Không có phiên bản Premium.
+3. Chùa Một Cột - sản phẩm COMING SOON. Số mảnh: xxx mảnh. Các thông số khác đang cập nhật; trợ lý chỉ giới thiệu ngắn gọn, chưa kể thành tuyến câu chuyện chính.
 
 Hai câu chuyện chính:
-- Tháp Rùa: tọa lạc trên Gò Rùa giữa Hồ Gươm; từng gắn với Điếu Đài thời Lê Thánh Tông và đình Tả Vọng thời chúa Trịnh. Tháp hiện nay được xây khoảng 1884–1886, có kiến trúc giao thoa Đông – Tây. Năm 1948, chiến sĩ Nguyễn Trọng Quang cùng đồng đội bơi ra treo cờ đỏ sao vàng trên tháp. Không kể truyền thuyết trả gươm như lịch sử trực tiếp của công trình.
+- Tháp Rùa: tọa lạc trên Gò Rùa giữa Hồ Gươm; từng gắn với Điếu Đài thời Lê Thánh Tông và đình Tả Vọng thời chúa Trịnh. Tháp hiện nay được xây khoảng 1884-1886, có kiến trúc giao thoa Đông - Tây. Năm 1948, chiến sĩ Nguyễn Trọng Quang cùng đồng đội bơi ra treo cờ đỏ sao vàng trên tháp. Không kể truyền thuyết trả gươm như lịch sử trực tiếp của công trình.
 - Phố Hàng Trống: phố nghề thủ công truyền thống của Hà Nội, nổi bật với tranh dân gian Hàng Trống. Tranh dùng bản khắc gỗ để in nét rồi nghệ nhân tô và vờn màu bằng tay, tạo sắc độ riêng cho từng tác phẩm.
 
 Hướng dẫn lắp ghép an toàn: kiểm tra và phân nhóm chi tiết theo hướng dẫn trong hộp; lắp thử trước khi ép khớp; đi lần lượt từ phần đế lên tầng cao; đặt mô hình trên mặt phẳng; không dùng lực mạnh hoặc tự ý dùng keo khi hướng dẫn không yêu cầu; chi tiết chính xác của từng bước phải theo sách hướng dẫn đi kèm bộ sản phẩm.

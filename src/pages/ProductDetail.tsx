@@ -134,7 +134,7 @@ export default function ProductDetail() {
               <div
                 className="upcoming-product-visual"
                 role="img"
-                aria-label={`${product.name} — COMING SOON`}
+                aria-label={`${product.name} - COMING SOON`}
               >
                 <img
                   src={

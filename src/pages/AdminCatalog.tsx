@@ -203,7 +203,7 @@ function CatalogEditorCard({
               event.target.value = ""
             }}
           />
-          <span>Chọn nhiều JPG, PNG hoặc WebP — tối đa 5 MB/ảnh, 8 ảnh</span>
+          <span>Chọn nhiều JPG, PNG hoặc WebP - tối đa 5 MB/ảnh, 8 ảnh</span>
         </label>
 
         {(galleryUrls.length > 0 || pendingPreviewUrls.length > 0) && (

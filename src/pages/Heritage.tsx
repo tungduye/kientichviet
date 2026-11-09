@@ -770,7 +770,7 @@ export default function Heritage() {
                 >
                   <Layers size={22} />{" "}
                   {isThapRua
-                    ? "Kiến trúc giao thoa Đông – Tây & Biểu tượng văn hóa"
+                    ? "Kiến trúc giao thoa Đông - Tây & Biểu tượng văn hóa"
                     : isHangTrong
                       ? "Kỹ thuật vờn màu độc bản & Giá trị văn hóa"
                       : "Triết lý kiến trúc: Trời tròn Đất vuông"}

@@ -1330,7 +1330,7 @@ export default function Cart() {
                 }}
               >
                 ✓ Kiểm tra tác phẩm trước khi nhận & thanh toán (COD)
-                <br />✓ Chuyên viên liên hệ lại trong vòng 15–30 phút
+                <br />✓ Chuyên viên liên hệ lại trong vòng 15-30 phút
               </div>
             </form>
           </div>

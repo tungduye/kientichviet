@@ -276,7 +276,7 @@ export default function ArExperience() {
             if (otherIndex !== index) otherAnchor.group.visible = false
           })
           setTargetState("tracking")
-          setStatus(`Đã nhận diện ảnh ${label} — mô hình đang bám theo ảnh.`)
+          setStatus(`Đã nhận diện ảnh ${label} - mô hình đang bám theo ảnh.`)
         }
         anchor.onTargetLost = () => {
           if (hasLastPose) {
@@ -284,7 +284,7 @@ export default function ArExperience() {
             anchor.group.matrixWorldNeedsUpdate = true
             anchor.group.visible = true
             setTargetState("held")
-            setStatus("Ảnh mục tiêu đã khuất — mô hình được giữ tại vị trí nhìn cuối. Quét lại ảnh để tiếp tục bám theo.")
+            setStatus("Ảnh mục tiêu đã khuất - mô hình được giữ tại vị trí nhìn cuối. Quét lại ảnh để tiếp tục bám theo.")
           } else {
             setTargetState("searching")
             setStatus("Hướng camera vào một trong các ảnh mục tiêu để bắt đầu.")

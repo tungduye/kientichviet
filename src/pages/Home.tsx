@@ -360,7 +360,7 @@ export default function Home() {
               </button>
               <div className="audio-copy">
                 <small>{playing ? "Đang nghe" : "Thuyết minh Audio"}</small>
-                <strong>Tháp Rùa — Biểu tượng giữa lòng Hồ Hoàn Kiếm</strong>
+                <strong>Tháp Rùa - Biểu tượng giữa lòng Hồ Hoàn Kiếm</strong>
                 <span className={`audio-wave ${playing ? "is-playing" : ""}`}>
                   {Array.from({ length: 17 }).map((_, index) => (
                     <i key={index} />
