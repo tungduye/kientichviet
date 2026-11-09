@@ -1,3 +1,5 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+
 import {
   getCorsHeaders,
   isAllowedOrigin,
@@ -64,13 +66,35 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const payload = await req.json()
-    const { customerName, customerPhone, customerAddress } = payload || {}
+    const payload = (await req.json()) as Record<string, unknown>
+    const cleanText = (value: unknown, maxLength: number) =>
+      typeof value === "string" ? value.trim().slice(0, maxLength) : ""
+
+    const orderId = cleanText(payload.orderId, 32)
+    const createdAt = cleanText(payload.createdAt, 80)
+    const customerName = cleanText(payload.customerName, 120)
+    const customerPhone = cleanText(payload.customerPhone, 30)
+    const customerEmail = cleanText(payload.customerEmail, 254) || "Chưa cung cấp"
+    const customerAddress = cleanText(payload.customerAddress, 500)
+    const customerNote = cleanText(payload.customerNote, 1000) || "Không có"
+    const products = cleanText(payload.products, 2000)
+    const totalAmount = cleanText(payload.totalAmount, 100)
+    const totalNumericValue = Number(payload.totalNumeric)
+    const totalNumeric = Number.isFinite(totalNumericValue) && totalNumericValue >= 0
+      ? Math.floor(totalNumericValue)
+      : 0
 
     // Server-side validation
-    if (!customerName || !customerPhone || !customerAddress) {
+    if (
+      !/^DH-[0-9]{8}-[0-9]{6}$/.test(orderId) ||
+      !createdAt ||
+      customerName.length < 2 ||
+      customerAddress.length < 5 ||
+      !products ||
+      !totalAmount
+    ) {
       return json(
-        { error: "Vui lòng cung cấp đầy đủ họ tên, số điện thoại và địa chỉ." },
+        { error: "Thông tin đơn hàng chưa đầy đủ hoặc không hợp lệ." },
         400,
         corsHeaders
       )
@@ -81,39 +105,123 @@ Deno.serve(async (req) => {
       return json({ error: "Số điện thoại không hợp lệ." }, 400, corsHeaders)
     }
 
-    const webhookUrl = Deno.env.get("ORDER_WEBHOOK_URL")
-    if (!webhookUrl) {
-      console.error("ORDER_WEBHOOK_URL is not set in Supabase secrets.")
-      return json(
-        { error: "Hệ thống đặt hàng tạm thời bảo trì. Vui lòng liên hệ hotline." },
-        500,
-        corsHeaders
-      )
+    if (
+      customerEmail !== "Chưa cung cấp" &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)
+    ) {
+      return json({ error: "Email không hợp lệ." }, 400, corsHeaders)
     }
 
-    // Forward order payload to Google Apps Script Web App
-    const response = await fetch(webhookUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "text/plain;charset=utf-8",
-      },
-      body: JSON.stringify(payload),
+    const rawItems = Array.isArray(payload.items) ? payload.items : []
+    if (rawItems.length === 0 || rawItems.length > 20) {
+      return json({ error: "Danh sách sản phẩm không hợp lệ." }, 400, corsHeaders)
+    }
+    const items = rawItems.map((item) => {
+      const row = item && typeof item === "object"
+        ? item as Record<string, unknown>
+        : {}
+      return {
+        productId: cleanText(row.productId, 120),
+        productName: cleanText(row.productName, 200),
+        quantity: Math.max(1, Math.min(99, Math.floor(Number(row.quantity) || 1))),
+        price: cleanText(row.price, 100),
+      }
+    })
+    if (items.some((item) => !item.productId || !item.productName || !item.price)) {
+      return json({ error: "Danh sách sản phẩm không hợp lệ." }, 400, corsHeaders)
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")
+    if (!supabaseUrl || !serviceRoleKey) {
+      console.error("Supabase server credentials are not configured.")
+      return json({ error: "Hệ thống lưu đơn hàng chưa sẵn sàng." }, 500, corsHeaders)
+    }
+
+    const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    })
+    const { error: insertError } = await adminClient.from("orders").insert({
+      order_id: orderId,
+      order_date_display: createdAt,
+      customer_name: customerName,
+      customer_phone: cleanPhone,
+      customer_email: customerEmail,
+      customer_address: customerAddress,
+      customer_note: customerNote,
+      products,
+      total_amount: totalAmount,
+      total_numeric: totalNumeric,
+      items,
     })
 
-    if (!response.ok) {
-      console.warn("Google Apps Script response status:", response.status)
+    if (insertError) {
+      console.error("Order database insert failed:", insertError.code)
       return json(
-        { error: "Chưa thể chuyển đơn hàng tới hệ thống xử lý. Vui lòng thử lại." },
-        502,
-        corsHeaders
+        { error: "Chưa thể lưu đơn hàng. Vui lòng thử lại." },
+        insertError.code === "23505" ? 409 : 500,
+        corsHeaders,
       )
     }
+
+    const webhookUrl = Deno.env.get("ORDER_WEBHOOK_URL")
+    const webhookSecret = Deno.env.get("ORDER_WEBHOOK_SECRET")
+    let sheetSynced = false
+    let sheetSyncStatus: "pending" | "synced" | "failed" = "pending"
+    let sheetSyncError = "Chưa cấu hình Google Apps Script webhook."
+
+    if (webhookUrl && webhookSecret) {
+      try {
+        const response = await fetch(webhookUrl, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            orderId,
+            createdAt,
+            customerName,
+            customerPhone: cleanPhone,
+            customerEmail,
+            customerAddress,
+            customerNote,
+            products,
+            totalAmount,
+            totalNumeric,
+            items,
+            webhookToken: webhookSecret,
+          }),
+        })
+        const responseBody = await response.json().catch(() => null) as
+          | { status?: string, message?: string }
+          | null
+        sheetSynced = response.ok && responseBody?.status === "success"
+        sheetSyncStatus = sheetSynced ? "synced" : "failed"
+        sheetSyncError = sheetSynced
+          ? ""
+          : responseBody?.message || `Google Apps Script trả về HTTP ${response.status}.`
+      } catch (error) {
+        sheetSyncStatus = "failed"
+        sheetSyncError = error instanceof Error ? error.message : "Không thể kết nối Google Apps Script."
+      }
+    }
+
+    const safeSyncError = sheetSyncError.slice(0, 500)
+    const { error: syncUpdateError } = await adminClient
+      .from("orders")
+      .update({
+        sheet_sync_status: sheetSyncStatus,
+        sheet_synced_at: sheetSynced ? new Date().toISOString() : null,
+        sheet_sync_error: sheetSynced ? null : safeSyncError,
+      })
+      .eq("order_id", orderId)
+    if (syncUpdateError) console.warn("Order sync status update failed")
 
     return json(
       {
         success: true,
         message: "Đơn hàng đã được tiếp nhận thành công.",
-        orderId: payload.orderId,
+        orderId,
+        sheetSynced,
+        sheetSyncStatus,
       },
       200,
       corsHeaders

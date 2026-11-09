@@ -448,7 +448,9 @@ export default function HeritageHub() {
                           src={
                             p.slug === "thap-rua"
                               ? "/images/thap-rua-product-main.png"
-                              : p.image
+                              : p.slug === "pho-hang-trong"
+                                ? "/images/pho-hang-trong-heritage-horizontal.png"
+                                : p.image
                           }
                           alt={p.name}
                           style={{

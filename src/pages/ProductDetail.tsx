@@ -14,8 +14,12 @@ import { isUpcomingProduct } from "../data/products"
 import ProductReviews from "../components/catalog/ProductReviews"
 
 export default function ProductDetail() {
-  const { products, findProduct, getVariants, loading: catalogLoading } =
-    useCatalog()
+  const {
+    products,
+    findProduct,
+    getVariants,
+    loading: catalogLoading,
+  } = useCatalog()
   const { slug } = useParams<{ slug: string }>()
 
   const { addToCart } = useCart()
@@ -38,7 +42,8 @@ export default function ProductDetail() {
     product && selectedVariant
       ? buildVariantProduct(product, selectedVariant)
       : product
-  const specifications = selectedProduct?.specifications ?? product?.specifications
+  const specifications =
+    selectedProduct?.specifications ?? product?.specifications
   const isProductUpcoming = product ? isUpcomingProduct(product) : false
   const galleryImages = selectedVariant
     ? selectedVariant.imageUrls.length
@@ -123,9 +128,7 @@ export default function ProductDetail() {
   return (
     <>
       <div className="product-detail-shell">
-        <div
-          className="product-modal product-detail-layout"
-        >
+        <div className="product-modal product-detail-layout">
           <div className="modal-image product-detail-gallery reveal">
             {isProductUpcoming ? (
               <div
@@ -135,7 +138,9 @@ export default function ProductDetail() {
               >
                 <img
                   src={
-                    activeGalleryImage || selectedProduct?.image || product.image
+                    activeGalleryImage ||
+                    selectedProduct?.image ||
+                    product.image
                   }
                   alt=""
                 />
@@ -143,15 +148,15 @@ export default function ProductDetail() {
               </div>
             ) : selectedVariant?.imageMode === "placeholder" &&
               !activeGalleryImage ? (
-                <div
-                  className="variant-image-placeholder"
-                  role="img"
-                  aria-label="Hình ảnh phiên bản Premium đang cập nhật"
-                >
-                  <Icon name="sparkle" size={34} />
-                  <strong>Premium Mosaic</strong>
-                  <span>Hình ảnh đang được hoàn thiện</span>
-                </div>
+              <div
+                className="variant-image-placeholder"
+                role="img"
+                aria-label="Hình ảnh phiên bản Premium đang cập nhật"
+              >
+                <Icon name="sparkle" size={34} />
+                <strong>Premium Mosaic</strong>
+                <span>Hình ảnh đang được hoàn thiện</span>
+              </div>
             ) : (
               <>
                 <img
@@ -162,7 +167,9 @@ export default function ProductDetail() {
                       : ""
                   }`}
                   src={
-                    activeGalleryImage || selectedProduct?.image || product.image
+                    activeGalleryImage ||
+                    selectedProduct?.image ||
+                    product.image
                   }
                   alt={`${product.name}${
                     selectedVariant ? ` phiên bản ${selectedVariant.name}` : ""
@@ -266,9 +273,7 @@ export default function ProductDetail() {
               </span>
               <span>
                 <small>Thời gian</small>
-                <strong>
-                  {specifications?.time || "Đang cập nhật"}
-                </strong>
+                <strong>{specifications?.time || "Đang cập nhật"}</strong>
               </span>
               <span>
                 <small>Độ khó</small>
@@ -291,9 +296,7 @@ export default function ProductDetail() {
             </div>
             <div className="modal-buy" style={{ marginTop: "35px" }}>
               <strong>
-                {isProductUpcoming
-                  ? "Sắp ra mắt"
-                  : selectedProduct?.price}
+                {isProductUpcoming ? "Sắp ra mắt" : selectedProduct?.price}
               </strong>
               <button
                 type="button"
@@ -310,6 +313,11 @@ export default function ProductDetail() {
                 <Icon name="bag" />
               </button>
             </div>
+            {product.modelUrl && !isProductUpcoming && (
+              <Link className="product-ar-link" to={`/ar/${product.id}`}>
+                <Icon name="phone" /> Mở camera trải nghiệm Web AR
+              </Link>
+            )}
           </div>
         </div>
       </div>
@@ -460,7 +468,11 @@ export default function ProductDetail() {
             </div>
           </div>
           <p className="nfc-fallback-copy">
-            Không dùng được NFC? <Link to={`/heritage/${product.slug}`}>Mở câu chuyện di sản tại đây</Link>.
+            Không dùng được NFC?{" "}
+            <Link to={`/heritage/${product.slug}`}>
+              Mở câu chuyện di sản tại đây
+            </Link>
+            .
           </p>
           <details className="nfc-qr-fallback">
             <summary>Quét mã QR thay cho NFC</summary>
@@ -472,7 +484,10 @@ export default function ProductDetail() {
                 marginSize={4}
                 title={`Mã QR mở câu chuyện ${product.name}`}
               />
-              <p>Dùng camera điện thoại khác quét mã để mở câu chuyện {product.name}.</p>
+              <p>
+                Dùng camera điện thoại khác quét mã để mở câu chuyện{" "}
+                {product.name}.
+              </p>
             </div>
           </details>
           <LinkButton href={`/heritage/${product.slug}`} dark>

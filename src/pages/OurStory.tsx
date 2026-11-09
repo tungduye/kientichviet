@@ -56,10 +56,15 @@ export default function OurStory() {
         <div className="reveal">
           <p className="kicker">Về chúng tôi · Thương hiệu</p>
           <h1>
-            Kiến Tích Việt là công ty nghiên cứu, sản xuất mô hình lắp ráp 3D tái hiện những công trình kiến trúc và di sản Việt Nam kết hợp trải nghiệm công nghệ
+            Kiến Tích Việt là công ty nghiên cứu, sản xuất mô hình lắp ráp 3D
+            tái hiện những công trình kiến trúc và di sản Việt Nam kết hợp trải
+            nghiệm công nghệ
           </h1>
           <p className="lead">
-            Với triết lí <em>“Lấy di sản làm gốc, lấy sáng tạo làm cầu nối”</em>, Kiến Tích Việt phát triển mô hình lắp ghép kết hợp công nghệ, mang đến trải nghiệm khám phá kiến trúc và văn hóa Việt Nam trực quan, sáng tạo và gần gũi hơn đến người dân Việt Nam và bạn bè quốc tế.
+            Với triết lí <em>“Lấy di sản làm gốc, lấy sáng tạo làm cầu nối”</em>
+            , Kiến Tích Việt phát triển mô hình lắp ghép kết hợp công nghệ, mang
+            đến trải nghiệm khám phá kiến trúc và văn hóa Việt Nam trực quan,
+            sáng tạo và gần gũi hơn đến người dân Việt Nam và bạn bè quốc tế.
           </p>
         </div>
         <div className="story-hero-logo reveal">
@@ -73,7 +78,10 @@ export default function OurStory() {
       </section>
 
       {/* Mission & Vision trước khi nói về Kiến - Tích - Việt */}
-      <section className="story-mission-vision reveal" aria-label="Sứ mệnh và Tầm nhìn">
+      <section
+        className="story-mission-vision reveal"
+        aria-label="Sứ mệnh và Tầm nhìn"
+      >
         <div className="mission-vision-grid">
           <div className="mv-card">
             <div className="mv-header">
@@ -81,7 +89,8 @@ export default function OurStory() {
               <span className="mv-sub">Mission</span>
             </div>
             <p className="mv-text">
-              Biến những dấu tích của quá khứ thành trải nghiệm của thế hệ hôm nay.
+              Biến những dấu tích của quá khứ thành trải nghiệm của thế hệ hôm
+              nay.
             </p>
           </div>
           <div className="mv-card">
@@ -90,13 +99,18 @@ export default function OurStory() {
               <span className="mv-sub">Vision</span>
             </div>
             <p className="mv-text">
-              Kiến Tích Việt xây dựng hệ sinh thái sản phẩm và nền tảng số về di sản, góp phần số hóa, bảo tồn và lan tỏa những giá trị kiến trúc, văn hóa Việt Nam đến các thế hệ tương lai và bạn bè quốc tế.
+              Kiến Tích Việt xây dựng hệ sinh thái sản phẩm và nền tảng số về di
+              sản, góp phần số hóa, bảo tồn và lan tỏa những giá trị kiến trúc,
+              văn hóa Việt Nam đến các thế hệ tương lai và bạn bè quốc tế.
             </p>
           </div>
         </div>
       </section>
 
-      <nav className="name-strip" aria-label="Ý nghĩa tên thương hiệu Kiến - Tích - Việt">
+      <nav
+        className="name-strip"
+        aria-label="Ý nghĩa tên thương hiệu Kiến - Tích - Việt"
+      >
         {chapters.map((c) => (
           <a href={`#${c.id}`} key={c.id}>
             <b>{c.word}</b>
@@ -142,15 +156,17 @@ export default function OurStory() {
           >
             Mô hình hoàn thiện mới chỉ là khởi đầu. Mảnh ghép vật lý kết hợp
             công nghệ tương tác đánh thức tư liệu, hình ảnh và âm thanh của quá
-            khứ — biến quan sát thụ động thành trải nghiệm văn hóa trọn vẹn.
+            khứ - biến quan sát thụ động thành trải nghiệm văn hóa trọn vẹn.
           </p>
           <div className="journey-steps">
-            {["Nhìn", "Lắp ghép", "Khám phá", "Cảm nhận", "Hiểu"].map((s, i) => (
-              <div key={s}>
-                <small>0{i + 1}</small>
-                <b>{s}</b>
-              </div>
-            ))}
+            {["Nhìn", "Lắp ghép", "Khám phá", "Cảm nhận", "Hiểu"].map(
+              (s, i) => (
+                <div key={s}>
+                  <small>0{i + 1}</small>
+                  <b>{s}</b>
+                </div>
+              ),
+            )}
           </div>
         </div>
       </section>

@@ -103,7 +103,14 @@ export default function Cart() {
 
     setErrorMessage("")
 
-    const orderId = "DH-" + Math.floor(100000 + Math.random() * 900000)
+    const now = new Date()
+    const datePart = [
+      now.getFullYear(),
+      String(now.getMonth() + 1).padStart(2, "0"),
+      String(now.getDate()).padStart(2, "0"),
+    ].join("")
+    const orderId =
+      `DH-${datePart}-` + Math.floor(100000 + Math.random() * 900000)
 
     const orderDate = new Date().toLocaleString("vi-VN", {
       timeZone: "Asia/Ho_Chi_Minh",
@@ -148,14 +155,18 @@ export default function Cart() {
     }
 
     try {
-      // Send to secure backend proxy (Supabase Edge Function -> Google Sheets)
-
-      try {
+      // Save to the server first, then let the Edge Function sync to Google Sheets.
+      const { data: orderResult, error: orderError } =
         await supabase.functions.invoke("create-order", {
           body: orderPayload,
         })
-      } catch (funcErr) {
-        console.warn("Order proxy notice:", funcErr)
+
+      if (orderError || !orderResult?.success) {
+        throw new Error(
+          orderResult?.error ||
+            orderError?.message ||
+            "Chưa thể lưu đơn hàng. Vui lòng thử lại.",
+        )
       }
 
       // Persist order in local backup
@@ -190,49 +201,23 @@ export default function Cart() {
 
       setStatus("success")
 
-      toast("Đặt hàng thành công! Đơn hàng đã được ghi nhận.")
+      toast(
+        orderResult.sheetSynced
+          ? "Đặt hàng thành công! Đơn hàng đã được lưu vào Google Sheet."
+          : "Đặt hàng thành công! Đơn hàng đã được lưu an toàn và đang chờ đồng bộ Google Sheet.",
+      )
 
       clearCart()
 
       window.scrollTo(0, 0)
     } catch (err) {
-      console.error("Order submit notice:", err)
-
-      // Even if network has hiccup, save locally and notify user success
-
-      try {
-        const stored = JSON.parse(
-          localStorage.getItem("kientichviet_orders") || "[]",
-        )
-
-        stored.unshift(orderPayload)
-
-        localStorage.setItem("kientichviet_orders", JSON.stringify(stored))
-      } catch (storageErr) {}
-
-      setSubmittedOrder({
-        orderId,
-
-        createdAt: orderDate,
-
-        customerName: formData.name.trim(),
-
-        customerPhone: formData.phone.trim(),
-
-        customerAddress: formData.address.trim(),
-
-        products: productsSummary,
-
-        totalAmount: totalDisplay,
-      })
-
-      setStatus("success")
-
-      toast("Đặt hàng thành công! Chúng tôi sẽ liên hệ sớm.")
-
-      clearCart()
-
-      window.scrollTo(0, 0)
+      console.error("Order submit failed:", err)
+      setErrorMessage(
+        err instanceof Error
+          ? err.message
+          : "Chưa thể lưu đơn hàng. Vui lòng thử lại.",
+      )
+      setStatus("error")
     }
   }
 

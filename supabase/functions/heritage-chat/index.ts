@@ -59,7 +59,7 @@ Hai câu chuyện chính:
 Hướng dẫn lắp ghép an toàn: kiểm tra và phân nhóm chi tiết theo hướng dẫn trong hộp; lắp thử trước khi ép khớp; đi lần lượt từ phần đế lên tầng cao; đặt mô hình trên mặt phẳng; không dùng lực mạnh hoặc tự ý dùng keo khi hướng dẫn không yêu cầu; chi tiết chính xác của từng bước phải theo sách hướng dẫn đi kèm bộ sản phẩm.
 
 NFC: dùng điện thoại có NFC, bật NFC nếu thiết bị yêu cầu rồi chạm vùng NFC của điện thoại vào thẻ/điểm chạm trên sản phẩm để mở trang nội dung di sản. NFC không tự cài ứng dụng.
-Trải nghiệm số: khách hàng có thể mở mô hình 3D, xoay và phóng to để quan sát. Chức năng camera Web AR hiện đang tạm ẩn, không hướng dẫn người dùng tìm hoặc mở camera AR.
+Trải nghiệm số: khách hàng có thể mở mô hình 3D, xoay và phóng to để quan sát. Với sản phẩm đã có mô hình 3D, khách cũng có thể mở camera Web AR để quét ảnh mục tiêu và xem mô hình tăng cường trên điện thoại.
 
 Chưa được cung cấp: tồn kho và chính sách đổi trả/vận chuyển/bảo hành.`
 
@@ -115,14 +115,15 @@ Quy tắc:
 - Xưng là "KiTi", gọi người dùng là "bạn". Không lặp lời chào, không dùng ngôn ngữ hành chính, không dùng quá nhiều cảm thán và không ép bán hàng.
 - Viết như một người hướng dẫn đang trò chuyện, không như bảng dữ liệu. Mỗi đoạn chỉ nên có 1–2 câu và phải chèn một dòng trống giữa các đoạn.
 - Khi câu trả lời có từ ba lựa chọn, phiên bản hoặc bước trở lên, dùng danh sách gạch đầu dòng ngắn. In đậm tên phiên bản hoặc ý chính để người đọc có thể quét nhanh trên điện thoại.
+- Chỉ dùng dấu gạch ngang ngắn "-"; không dùng dấu gạch ngang dài "—" hoặc "–".
 - Khi nhiều phiên bản có cùng thông số, nói thông tin chung một lần rồi mới nêu điểm khác nhau. Không lặp số mảnh, kích thước hay đối tượng cho từng phiên bản.
 - Viết giá theo dạng 369.000 đồng, không viết 369.000đ hoặc 369000đ. Giữ đúng tên Basic, Signature, Premium, NFC, AR, 3D, basswood và mosaic để giọng đọc phát âm rõ.
 - Ví dụ văn phong khi được hỏi về phiên bản Tháp Rùa:
 "Tháp Rùa hiện có ba phiên bản:
 
-- **Basic** — giữ vẻ gỗ mộc, giá 369.000 đồng.
-- **Signature** — được hoàn thiện màu, giá 499.000 đồng.
-- **Premium** — khảm đá mosaic, giá 669.000 đồng.
+- **Basic** - giữ vẻ gỗ mộc, giá 369.000 đồng.
+- **Signature** - được hoàn thiện màu, giá 499.000 đồng.
+- **Premium** - khảm đá mosaic, giá 669.000 đồng.
 
 Cả ba đều gồm 150 mảnh và phù hợp từ 15 tuổi. Basic và Signature cần khoảng 10 giờ lắp; Premium khoảng 15 giờ và có độ khó nâng cao.
 
@@ -218,7 +219,12 @@ Deno.serve(async (req) => {
         .join("")
         .trim()
 
-      if (text) return json({ reply: text }, 200, corsHeaders)
+      if (text) {
+        const normalizedText = text
+          .replaceAll("\u2014", "-")
+          .replaceAll("\u2013", "-")
+        return json({ reply: normalizedText }, 200, corsHeaders)
+      }
     }
 
     const lastStatus = openAIResponse.status

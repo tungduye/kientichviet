@@ -204,6 +204,7 @@ export default function Chatbox() {
           }
           reply = message || "Trợ lý tạm thời không phản hồi. Vui lòng thử lại."
         }
+        reply = reply.replaceAll("\u2014", "-").replaceAll("\u2013", "-")
         const assistantMessage = createChatMessage(
           "assistant",
           reply,

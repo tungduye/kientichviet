@@ -1,5 +1,16 @@
 # Hướng dẫn kết nối Đơn hàng về Google Sheet (Kiến Tích Việt)
 
+> Cấu hình hiện tại dùng bảng tính `1nTzboNa_X2daZJkYLc6ajh8YV0lL6JWCw8KztyUXJKg` và Supabase Edge Function `create-order`. Website không gọi Google trực tiếp, nhờ đó URL webhook và mã bảo vệ không bị lộ trên trình duyệt.
+
+Mã Apps Script đã chuẩn bị sẵn tại `docs/google-apps-script-order-webhook.gs`. Trong Google Sheet trên, vào **Tiện ích mở rộng -> Apps Script**, dán file này, sau đó:
+
+1. Vào **Cài đặt dự án -> Thuộc tính tập lệnh**, thêm `ORDER_WEBHOOK_SECRET` với một chuỗi bí mật dài.
+2. Chạy hàm `setupOrderSheet` một lần để tạo tab **Đơn hàng** và hàng tiêu đề.
+3. Chọn **Triển khai -> Tùy chọn triển khai mới -> Ứng dụng web**, thực thi dưới tài khoản chủ bảng và cho phép **Bất kỳ ai** truy cập.
+4. Cấu hình hai Supabase secret phía máy chủ: `ORDER_WEBHOOK_URL` là URL `/exec` và `ORDER_WEBHOOK_SECRET` là đúng chuỗi ở bước 1.
+
+Mỗi đơn luôn được lưu trước trong bảng Supabase `orders`; Google Sheet là bản đồng bộ quản lý. Nếu Google tạm lỗi, website không làm mất đơn hàng.
+
 Để nhận đơn hàng tự động từ website về Google Sheet, bạn chỉ cần thực hiện 4 bước đơn giản sau (mất khoảng 2 phút):
 
 ---
