@@ -12,6 +12,7 @@ import { QRCodeSVG } from "qrcode.react"
 import { buildVariantProduct } from "../features/products/productVariants"
 import { isUpcomingProduct } from "../data/products"
 import ProductReviews from "../components/catalog/ProductReviews"
+import ModelViewer3D from "../components/ModelViewer3D"
 
 export default function ProductDetail() {
   const {
@@ -28,8 +29,10 @@ export default function ProductDetail() {
 
   const [selectedVariantId, setSelectedVariantId] = useState("basic")
   const [galleryIndex, setGalleryIndex] = useState(0)
+  const [is3DModalOpen, setIs3DModalOpen] = useState(false)
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const open3DButtonRef = useRef<HTMLButtonElement | null>(null)
 
   const product = findProduct(slug)
 
@@ -66,6 +69,7 @@ export default function ProductDetail() {
     setPlaying(false)
 
     setSelectedVariantId("basic")
+    setIs3DModalOpen(false)
 
     if (audioRef.current) {
       audioRef.current.pause()
@@ -73,6 +77,29 @@ export default function ProductDetail() {
       audioRef.current.currentTime = 0
     }
   }, [slug])
+
+  useEffect(() => {
+    if (!is3DModalOpen) return
+
+    const previousOverflow = document.body.style.overflow
+    const previousFocus = document.activeElement
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIs3DModalOpen(false)
+    }
+
+    document.body.style.overflow = "hidden"
+    window.addEventListener("keydown", handleKeyDown)
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener("keydown", handleKeyDown)
+      if (previousFocus instanceof HTMLElement && previousFocus.isConnected) {
+        previousFocus.focus()
+      } else {
+        open3DButtonRef.current?.focus()
+      }
+    }
+  }, [is3DModalOpen])
 
   useEffect(() => {
     setGalleryIndex(0)
@@ -313,9 +340,50 @@ export default function ProductDetail() {
                 <Icon name="bag" />
               </button>
             </div>
+            {product.modelUrl && !isProductUpcoming && (
+              <button
+                ref={open3DButtonRef}
+                type="button"
+                className="product-detail-3d-trigger"
+                aria-haspopup="dialog"
+                aria-expanded={is3DModalOpen}
+                aria-controls="product-detail-3d-dialog"
+                onClick={() => setIs3DModalOpen(true)}
+              >
+                <Icon name="cube" size={19} />
+                <span>Xem mô hình 3D</span>
+                <small>Xoay và thu phóng để xem các góc</small>
+              </button>
+            )}
           </div>
         </div>
       </div>
+
+      {is3DModalOpen && product.modelUrl && (
+        <div
+          id="product-detail-3d-dialog"
+          className="product-detail-3d-dialog"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Mô hình 3D ${product.name}`}
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              setIs3DModalOpen(false)
+            }
+          }}
+        >
+          <div className="product-detail-3d-dialog-panel">
+            <ModelViewer3D
+              src={product.modelUrl}
+              iosSrc={product.usdzUrl}
+              poster={activeGalleryImage || product.image}
+              alt={`Mô hình 3D tương tác ${product.name}`}
+              title={product.name}
+              onClose={() => setIs3DModalOpen(false)}
+            />
+          </div>
+        </div>
+      )}
 
       <section className="intro section-pad">
         <div className="section-heading reveal">
